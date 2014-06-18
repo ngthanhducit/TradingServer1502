@@ -1,0 +1,621 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Transactions;
+
+namespace TradingServer.Business
+{
+    public partial class Investor
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        public Investor()
+        {
+            if (this.AlertQueue == null)
+                this.AlertQueue = new List<PriceAlert>();
+
+            if (this.UpdateCommands == null)
+                this.UpdateCommands = new List<OpenTrade>();
+
+            if (this.CommandList == null)
+                this.CommandList = new List<OpenTrade>();
+
+            if (this.ClientCommandQueue == null)
+                this.ClientCommandQueue = new List<string>();
+
+            if (this.BackupQueue == null)
+                this.BackupQueue = new List<BackupQueue>();
+
+            if (this.ClientConfigInstance == null)
+                this.ClientConfigInstance = new ClientConfig();
+
+            this.numTimeOut = 10;
+            this.TickInvestor = new List<Tick>();
+
+            this.IsActive = false;
+            this.RefInvestorID = -1;
+            this.AgentRefID = -1;
+
+            this.IsFirstLogin = true;
+            this.ConnectType = 1;
+        }
+                
+        /// <summary>
+        /// 
+        /// </summary>
+        internal void ReCalculationAccount()
+        {
+            this.IsCalculating = true;
+
+            if (this.CommandList != null)
+            {
+                if (this.CommandList.Count > 0 && this.CommandList != null)
+                {
+                    //Call function Total Margin Of Investor
+                    //this.Margin = this.CommandList[0].Symbol.CalculationTotalMargin(this.CommandList);
+                    this.Profit = this.InvestorGroupInstance.CalculationTotalProfit(this.CommandList);                    
+                    this.Equity = this.Balance + this.Credit + this.Profit;
+                    double Loss = 0;
+                    double Profit = 0;
+                    int Method = -1;
+
+                    switch (this.InvestorGroupInstance.FreeMargin)
+                    {
+                        case "do not use unrealized profit/loss":
+                            Method = 0;
+                            break;
+                        case "use unrealized profit/loss":
+                            Method = 1;
+                            break;
+                        case "use unrealized profit only":
+                            Method = 2;
+                            Profit = this.InvestorGroupInstance.CalculationTotalProfitPositive(this.CommandList);
+                            break;
+                        case "use unrealized loss only":
+                            Method = 3;
+                            Loss = this.InvestorGroupInstance.CalculationTotalLoss(this.CommandList);
+                            break;
+                    }
+
+                    double totalMargin = this.Margin + this.FreezeMargin;
+                    this.FreeMargin = this.InvestorGroupInstance.CalculationTotalFreeMargin(totalMargin, this.Balance, this.Equity, Profit, Loss, Method);
+                    this.MarginLevel = (this.Equity * 100) / (this.Margin + this.FreezeMargin);
+                }
+                else
+                {
+                    this.Margin = 0;
+                    this.FreeMargin = 0;
+                    this.FreezeMargin = 0;
+                    this.MarginLevel = 0;
+                    this.Profit = 0;
+                }
+            }
+
+            try
+            {
+                if (this.CommandList.Count > 0)
+                {
+                    if (this.MarginLevel <= this.InvestorGroupInstance.MarginCall)
+                    {
+                        StringBuilder content = new StringBuilder();
+                        content.Append("html");
+                        content.Append("<body style='font-family: sans-serif'>");
+                        content.Append("<div style='font-size: 15px; color: White; background-color: #BABABA; height: 17px;border-radius:3px;padding: 10px'>MARGIN CALL ALERT</div>");
+                        content.Append("<div style='font-size: 12px; color: black; background-color: #E3E3E3;margin-top: 10px; padding: 15px;border-radius:3px;'>Dear Client,<br/>");
+                        content.Append("<br/>Your account ");
+                        content.Append(this.Code + " ");
+                        content.Append("has just reached the margin call level at ");
+
+                        content.Append(DateTime.Now.Hour + ":" + DateTime.Now.Minute +
+                                        " [" + DateTime.Now.Day + "/" + DateTime.Now.Month +
+                                        "/" + DateTime.Now.Year + "]");
+
+                        content.Append(".<br/> Margin Level is now ");
+                        content.Append(Math.Round(this.MarginLevel, 2));
+                        content.Append("%.<br/>");
+                        content.Append("<br/>Best Regards,<br/>Customer Service</div>");
+                        content.Append("</body>");
+                        content.Append("</html>");
+
+                        //SEND MAIL IF ACCOUNT MARGIN CALL
+                        TimeSpan timeSpan = DateTime.Now - this.TimeWarningMarginCall;
+                        if (timeSpan.TotalHours > Business.Market.TimeDelaySendWarningMarginCall)
+                        {
+                            this.TimeWarningMarginCall = DateTime.Now;
+
+                            Model.MailConfig newMailConfig = new Model.MailConfig();
+                            newMailConfig = Business.Market.marketInstance.GetMailConfig(this);
+
+                            #region GET MAIL CONFIG AND SEND REPORT
+                            if (newMailConfig != null)
+                            {
+                                if (newMailConfig.isEnable)
+                                {
+                                    if (!string.IsNullOrEmpty(newMailConfig.SmtpHost) && !string.IsNullOrEmpty(newMailConfig.MessageFrom) &&
+                                        !string.IsNullOrEmpty(newMailConfig.PasswordCredential))
+                                    {
+                                        if (!string.IsNullOrEmpty(this.Email))
+                                        {
+                                            Model.TradingCalculate.Instance.SendMailAsync(this.Email, "MARGIN CALL ALERT", content.ToString(),
+                                                                                            newMailConfig);
+                                        }
+                                    }
+                                }
+                            }
+                            #endregion
+
+                            string logSendMail = string.Empty;
+                            logSendMail = "Send Mail Alert Margin Call Account: " + this.Code;
+                            TradingServer.Facade.FacadeAddNewSystemLog(1, logSendMail, "[Alert Margin Call]", "", this.Code);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+            //Check Stop Out Level Of Account
+            if (this.MarginLevel <= this.InvestorGroupInstance.MarginStopOut)
+            {
+                //string content = "stop out account " + this.Code + " " + Math.Round(this.MarginLevel, 2);
+                //TradingServer.Facade.FacadeAddNewSystemLog(5, content, "[stop out account] " + this.Code, "", this.Code);
+                //Call Function Close Command
+
+                if (this.CommandList != null && this.CommandList.Count > 0)
+                {
+                    bool isManualStopOut = TradingServer.Facade.FacadeCheckManaulStopOut(this.InvestorGroupInstance.InvestorGroupID);
+                    if (!isManualStopOut)
+                    {
+                        bool result = this.ReCheckStopOutAccount();
+                        if (result)
+                        {
+                            this.StopOutLevel();
+                        }
+                    }
+                }
+            }
+
+            this.IsCalculating = false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private bool ReCheckStopOutAccount()
+        {
+            bool result = false;
+            if (this.CommandList != null && this.CommandList.Count > 0)
+            {
+                //recalculation account of investor
+                for (int i = 0; i < this.CommandList.Count; i++)
+                {
+                    #region CHECK ONLINE PRICE AGAIN
+                    bool ResultFilter = false;
+                    //Call Function Automatic Limit
+                    bool ResultParse = false;
+                    double AutoLimit = 0;
+                    ResultParse = double.TryParse(this.CommandList[i].Symbol.AutoLimit, out AutoLimit);
+                    if (ResultParse == true)
+                        ResultFilter = this.CommandList[i].Symbol.AutomaticLimit(this.CommandList[i].Symbol.TickValue, AutoLimit);
+
+                    if (ResultFilter == false)
+                    {
+                        TradingServer.Facade.FacadeAddNewSystemLog(1, "Data feed : " + this.CommandList[i].Symbol.TickValue.SymbolName + " error automatic limit", "[automatic limit]", "", "");
+                        return false;
+                    }
+
+                    //Call Function Filter Level
+                    ResultFilter = this.CommandList[i].Symbol.FiltrationLevel(this.CommandList[i].Symbol.TickValue, this.CommandList[i].Symbol.FiltrationsLevel, this.CommandList[i].Symbol.Filter);
+                    if (ResultFilter == false)
+                    {
+                        TradingServer.Facade.FacadeAddNewSystemLog(1, "Data feed : " + this.CommandList[i].Symbol.TickValue.SymbolName + " error filtration level", "[filtration level]", "", "");
+                        return false;
+                    }
+                    #endregion                    
+
+                    if (this.CommandList[i].ClosePrice <= 0)
+                    {
+                        if (this.CommandList[i].Type.ID == 1 || this.CommandList[i].Type.ID == 11)
+                        {
+                            if (this.CommandList[i].Symbol.TickValue.Bid > 0)
+                            {
+                                this.CommandList[i].ClosePrice = this.CommandList[i].Symbol.TickValue.Bid;
+                            }
+                        }
+
+                        if (this.CommandList[i].Type.ID == 2 || this.CommandList[i].Type.ID == 12)
+                        {
+                            if (this.CommandList[i].Symbol.TickValue.Ask > 0)
+                            {
+                                double Ask = 0;
+                                Ask = (Symbol.ConvertNumberPip(this.CommandList[i].Symbol.Digit, this.CommandList[i].SpreaDifferenceInOpenTrade) +
+                                    this.CommandList[i].Symbol.TickValue.Ask);
+                                this.CommandList[i].ClosePrice = Ask;
+                            }
+                        }
+                    }
+
+                    this.CommandList[i].CalculatorProfitCommand(this.CommandList[i]);
+                    this.CommandList[i].Profit = this.CommandList[i].Symbol.ConvertCurrencyToUSD(this.CommandList[i].Symbol.Currency, this.CommandList[i].Profit,
+                        false, this.CommandList[i].SpreaDifferenceInOpenTrade, this.CommandList[i].Symbol.Digit);
+                }
+
+                //Call function Total Margin Of Investor
+                //this.Margin = this.CommandList[0].Symbol.CalculationTotalMargin(this.CommandList);
+                this.Profit = this.InvestorGroupInstance.CalculationTotalProfit(this.CommandList);
+                this.Equity = this.Balance + this.Credit + this.Profit;
+                double Loss = 0;
+                double Profit = 0;
+                int Method = -1;
+
+                switch (this.InvestorGroupInstance.FreeMargin)
+                {
+                    case "do not use unrealized profit/loss":
+                        Method = 0;
+                        break;
+                    case "use unrealized profit/loss":
+                        Method = 1;
+                        break;
+                    case "use unrealized profit only":
+                        Method = 2;
+                        Profit = this.InvestorGroupInstance.CalculationTotalProfitPositive(this.CommandList);
+                        break;
+                    case "use unrealized loss only":
+                        Method = 3;
+                        Loss = this.InvestorGroupInstance.CalculationTotalLoss(this.CommandList);
+                        break;
+                }
+
+                double totalMargin = this.Margin + this.FreezeMargin;
+                this.FreeMargin = this.InvestorGroupInstance.CalculationTotalFreeMargin(totalMargin, this.Balance, this.Equity, Profit, Loss, Method);
+                this.MarginLevel = (this.Equity * 100) / (this.Margin + this.FreezeMargin);
+            }
+
+            if (this.MarginLevel <= this.InvestorGroupInstance.MarginStopOut)
+            {
+                result = true;
+            }
+
+            return result;
+        }
+                
+        /// <summary>
+        /// Re Calculation Account Then Init Server
+        /// </summary>
+        internal void ReCalculationAccountInit()
+        {
+            this.IsCalculating = true;
+
+            if (this.CommandList != null)
+            {
+                if (this.CommandList.Count > 0 && this.CommandList != null)
+                {
+                    //RECALCULATION PROFIT OF COMMAND WITH TICK ONLINE IS GET FROM CANDLES 1M 
+                    for (int i = 0; i < this.CommandList.Count; i++)
+                    {
+                        bool isPending = TradingServer.Model.TradingCalculate.Instance.CheckIsPendingPosition(this.CommandList[i].Type.ID);
+                        if (!isPending)
+                        {
+                            this.CommandList[i].CalculatorProfitCommand(this.CommandList[i]);
+                            this.CommandList[i].Profit = this.CommandList[i].Symbol.ConvertCurrencyToUSD(this.CommandList[i].Symbol.Currency, this.CommandList[i].Profit, false,
+                                this.CommandList[i].SpreaDifferenceInOpenTrade, this.CommandList[i].Symbol.Digit);
+
+                            this.CommandList[i].CalculatorMarginCommand(this.CommandList[i]);
+                        }
+
+                        //if (this.CommandList[i].Type.ID != 3 && this.CommandList[i].Type.ID != 4 &&
+                        //    this.CommandList[i].Type.ID != 7 && this.CommandList[i].Type.ID != 8 &&
+                        //    this.CommandList[i].Type.ID != 9 && this.CommandList[i].Type.ID != 10 &&
+                        //    this.CommandList[i].Type.ID != 17 && this.CommandList[i].Type.ID != 18 &&
+                        //    this.CommandList[i].Type.ID != 19 && this.CommandList[i].Type.ID != 20)
+                        //{
+                            
+                        //}
+                    }
+
+                    Business.Margin newMargin = new Margin();
+                    newMargin = this.CommandList[0].Symbol.CalculationTotalMargin(this.CommandList);
+                    this.Margin = newMargin.TotalMargin;
+                    this.FreezeMargin = newMargin.TotalFreezeMargin;
+
+                    this.Profit = this.InvestorGroupInstance.CalculationTotalProfit(this.CommandList);
+                    this.Equity = this.Balance + this.Credit + this.Profit;
+                    double Loss = 0;
+                    double Profit = 0;
+                    int Method = -1;
+
+                    switch (this.InvestorGroupInstance.FreeMargin)
+                    {
+                        case "do not use unrealized profit/loss":
+                            Method = 0;
+                            break;
+                        case "use unrealized profit/loss":
+                            Method = 1;
+                            break;
+                        case "use unrealized profit only":
+                            Method = 2;
+                            Profit = this.InvestorGroupInstance.CalculationTotalProfitPositive(this.CommandList);
+                            break;
+                        case "use unrealized loss only":
+                            Method = 3;
+                            Loss = this.InvestorGroupInstance.CalculationTotalLoss(this.CommandList);
+                            break;
+                    }
+
+                    double totalMargin = this.Margin + this.FreezeMargin;
+                    this.FreeMargin = this.InvestorGroupInstance.CalculationTotalFreeMargin(totalMargin, this.Balance, this.Equity, Profit, Loss, Method);
+                    this.MarginLevel = (this.Equity * 100) / (this.Margin + this.FreezeMargin);
+                }
+                else
+                {
+                    this.Margin = 0;
+                    this.FreeMargin = 0;
+                    this.MarginLevel = 0;
+                    this.Profit = 0;
+                }
+            }
+
+            this.IsCalculating = false;
+        }        
+
+        /// <summary>
+        /// If Margin Level Of Account < Stop Out Level Setting In Admin Then Close All Command Of Investor
+        /// </summary>
+        internal void StopOutLevel()
+        {   
+            if (this.CommandList != null && this.CommandList.Count > 0)
+            {
+                int count = this.CommandList.Count;
+
+                string comment = "so: " + Math.Round(this.MarginLevel, 2) + "%/" + Math.Round(this.Equity, 2) + "/" + this.Margin;
+
+                for (int i = 0; i < this.CommandList.Count; i++)
+                {
+                    bool isTrade = TradingServer.Facade.FacadeCheckStatusSymbol(this.CommandList[i].Symbol.Name.Trim());
+                    //TradingServer.Facade.FacadeAddNewSystemLog(6, "Status Trade Symbol: " + this.CommandList[i].Symbol.Name + " is: " + isTrade,
+                    //                                            "[Check Status Symbol]", "", this.Code);
+                    if (isTrade == true)
+                    {
+                        bool isPending = TradingServer.Model.TradingCalculate.Instance.CheckIsPendingPosition(this.CommandList[i].Type.ID);
+                        if (isPending)
+                            this.CommandList[i].Profit = 0;
+
+                        #region Command Is Close
+                        int ResultHistory = -1;
+                        //Add Command To Command History
+                        this.CommandList[i].ExpTime = DateTime.Now;
+                        this.CommandList[i].CloseTime = DateTime.Now;
+                        this.CommandList[i].Comment = comment;
+
+                        //double totalSwap = this.CommandList[i].Swap + this.CommandList[i].TotalSwap;
+                        //this.CommandList[i].TotalSwap = 0;
+                        //this.CommandList[i].Swap = totalSwap;
+
+                        if (isPending)
+                        {
+                            ResultHistory = TradingServer.Facade.FacadeAddNewCommandHistory(this.CommandList[i].Investor.InvestorID, this.CommandList[i].Type.ID,
+                                this.CommandList[i].CommandCode, this.CommandList[i].OpenTime, this.CommandList[i].OpenPrice, this.CommandList[i].CloseTime,
+                                this.CommandList[i].ClosePrice, 0, this.CommandList[i].Swap, this.CommandList[i].Commission,
+                                this.CommandList[i].ExpTime, this.CommandList[i].Size, this.CommandList[i].StopLoss, this.CommandList[i].TakeProfit,
+                                this.CommandList[i].ClientCode, this.CommandList[i].Symbol.SymbolID, this.CommandList[i].Taxes, this.CommandList[i].AgentCommission,
+                                this.CommandList[i].Comment, "15", this.CommandList[i].TotalSwap, this.CommandList[i].RefCommandID,
+                                this.CommandList[i].AgentRefConfig, this.CommandList[i].IsActivePending, this.CommandList[i].IsStopLossAndTakeProfit);
+                        }
+                        else
+                        {
+                            ResultHistory = TradingServer.Facade.FacadeAddNewCommandHistory(this.CommandList[i].Investor.InvestorID, this.CommandList[i].Type.ID,
+                                this.CommandList[i].CommandCode, this.CommandList[i].OpenTime, this.CommandList[i].OpenPrice, this.CommandList[i].CloseTime,
+                                this.CommandList[i].ClosePrice, this.CommandList[i].Profit, this.CommandList[i].Swap, this.CommandList[i].Commission,
+                                this.CommandList[i].ExpTime, this.CommandList[i].Size, this.CommandList[i].StopLoss, this.CommandList[i].TakeProfit,
+                                this.CommandList[i].ClientCode, this.CommandList[i].Symbol.SymbolID, this.CommandList[i].Taxes, this.CommandList[i].AgentCommission,
+                                this.CommandList[i].Comment, "15", this.CommandList[i].TotalSwap, this.CommandList[i].RefCommandID,
+                                this.CommandList[i].AgentRefConfig, this.CommandList[i].IsActivePending, this.CommandList[i].IsStopLossAndTakeProfit);
+                        }
+
+                        if (ResultHistory > 0)
+                        {
+                            //Log Stop Out
+                            string content = string.Empty;
+                            string mode = TradingServer.Facade.FacadeGetTypeNameByTypeID(this.CommandList[i].Type.ID).ToLower();
+                            string size = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(this.CommandList[i].Size.ToString(), 2);
+                            string openPrice = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(this.CommandList[i].OpenPrice.ToString(), this.CommandList[i].Symbol.Digit);
+                            content = "'" + this.CommandList[i].Investor.Code + "': stop out #" + this.CommandList[i].CommandCode + " " + mode + " " + size + " " + this.CommandList[i].Symbol.Name + " at " + openPrice +
+                                " (" + this.CommandList[i].Symbol.TickValue.Bid + "/" + this.CommandList[i].Symbol.TickValue.Ask + ")";
+
+                            TradingServer.Facade.FacadeAddNewSystemLog(5, content, "[stop out]", "", this.Code);
+
+                            //NEW SOLUTION ADD COMMAND TO REMOVE LIST
+                            //Business.OpenTrade newOpenTrade = this.CommandList[i];
+                            Business.OpenRemove newOpenRemove = new OpenRemove();
+                            newOpenRemove.InvestorID = this.InvestorID;
+                            newOpenRemove.OpenTradeID = this.CommandList[i].ID;
+                            newOpenRemove.SymbolName = this.CommandList[i].Symbol.Name;
+                            newOpenRemove.IsExecutor = true;
+                            newOpenRemove.IsSymbol = true;
+                            newOpenRemove.IsInvestor = false;
+                            Business.Market.AddCommandToRemoveList(newOpenRemove);
+
+                            double totalProfit = Math.Round(this.CommandList[i].Profit + this.CommandList[i].Commission + this.CommandList[i].Swap, 2);
+                            if (!isPending)
+                            {
+                                this.Balance += totalProfit;
+
+                                //Update Balance Of Investor Account
+                                this.UpdateBalance(this.CommandList[i].Investor.InvestorID, this.Balance);
+                            }
+
+                            //Update Command In Database                             
+                            TradingServer.Facade.FacadeDeleteOpenTradeByID(this.CommandList[i].ID);
+
+                            this.Profit = this.InvestorGroupInstance.CalculationTotalProfit(this.CommandList);
+                            this.Equity = this.Balance + this.Credit + this.Profit;
+                            double Loss = this.InvestorGroupInstance.CalculationTotalLoss(this.CommandList);
+                            double Profit = this.InvestorGroupInstance.CalculationTotalProfitPositive(this.CommandList);
+
+                            //Close Command Complete Add Message To Client
+                            if (this.ClientCommandQueue == null)
+                                this.ClientCommandQueue = new List<string>();
+
+                            #region Map Command Server To Client
+                            string Message = "StopOut$True,Close Command Complete," + this.CommandList[i].ID + "," + this.CommandList[i].Investor.InvestorID + "," +
+                                this.CommandList[i].Symbol.Name + "," + this.CommandList[i].Size + "," + false + "," + this.CommandList[i].OpenTime + "," +
+                                this.CommandList[i].OpenPrice + "," + this.CommandList[i].StopLoss + "," + this.CommandList[i].TakeProfit + "," +
+                                this.CommandList[i].ClosePrice + "," + this.CommandList[i].Commission + "," + this.CommandList[i].Swap + "," +
+                                this.CommandList[i].Profit + "," + "Comment," + this.CommandList[i].ID + "," + this.CommandList[i].Type.Name + "," +
+                                1 + "," + this.CommandList[i].ExpTime + "," + this.CommandList[i].ClientCode + "," + this.CommandList[i].CommandCode + "," +
+                                this.CommandList[i].IsHedged + "," + this.CommandList[i].Type.ID + "," + this.CommandList[i].Margin + ",Close" + "," +
+                                this.CommandList[i].CloseTime;
+
+                            if (this.ClientCommandQueue == null)
+                                this.ClientCommandQueue = new List<string>();
+
+                            this.ClientCommandQueue.Add(Message);
+
+                            //SEND COMMAND TO AGENT SERVER
+
+                            string msg = "StopOut$True,Close Command Complete," + this.CommandList[i].ID + "," + this.CommandList[i].Investor.InvestorID + "," +
+                                                        this.CommandList[i].Symbol.Name + "," + this.CommandList[i].Size + "," + false + "," +
+                                                        this.CommandList[i].OpenTime + "," + this.CommandList[i].OpenPrice + "," +
+                                                        this.CommandList[i].StopLoss + "," + this.CommandList[i].TakeProfit + "," +
+                                                        this.CommandList[i].ClosePrice + "," + this.CommandList[i].Commission + "," +
+                                                        this.CommandList[i].Swap + "," + this.CommandList[i].Profit + "," + "Comment," +
+                                                        this.CommandList[i].ID + "," + this.CommandList[i].Type.Name + "," +
+                                                        1 + "," + this.CommandList[i].ExpTime + "," + this.CommandList[i].ClientCode + "," +
+                                                        this.CommandList[i].CommandCode + "," + this.CommandList[i].IsHedged + "," +
+                                                        this.CommandList[i].Type.ID + "," + this.CommandList[i].Margin +
+                                                        ",Close," + this.CommandList[i].CloseTime;
+
+                            msg += this.CommandList[i].AgentRefConfig;
+                            Business.AgentNotify newAgentNotify = new AgentNotify();
+                            newAgentNotify.NotifyMessage = msg;
+                            TradingServer.Agent.AgentConfig.Instance.AddNotifyToAgent(newAgentNotify, this.CommandList[i].Investor.InvestorGroupInstance);
+
+                            #endregion
+
+                            //SEND NOTIFY TO MANAGER
+                            TradingServer.Facade.FacadeSendNoticeManagerRequest(2, this.CommandList[i]);
+
+                            lock (Business.Market.syncObject)
+                            {
+                                //Remove Command In Investor List                        
+                                this.CommandList.RemoveAt(i);
+                            }
+                        }
+                        else
+                        {
+                            TradingServer.Facade.FacadeAddNewSystemLog(1, "can not delete command", "[stop out account] " + this.Code, "", this.Code);
+                        }
+                        #endregion
+
+                        i--;
+                    }
+                }
+            }
+
+            if (this.CommandList.Count > 0 && this.CommandList != null)
+            {
+                //Call function Total Margin Of Investor                                                            
+                Business.Margin totalMargin = new Business.Margin();
+                totalMargin = this.CommandList[0].Symbol.CalculationTotalMargin(this.CommandList);
+                this.Margin = totalMargin.TotalMargin;
+                this.FreezeMargin = totalMargin.TotalFreezeMargin;
+
+                this.Profit = this.InvestorGroupInstance.CalculationTotalProfit(this.CommandList);
+                this.Equity = this.Balance + this.Credit + this.Profit;
+                this.MarginLevel = (this.Equity * 100) / (this.Margin + this.FreezeMargin);
+            }
+            else
+            {
+                this.Margin = 0;
+                this.FreezeMargin = 0;
+                this.Profit = 0;
+                this.Equity = 0;
+                this.MarginLevel = 0;
+            }
+
+            //send notify to manager update account investor
+            TradingServer.Facade.FacadeSendNotifyManagerRequest(3, this);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="investor"></param>
+        internal void AddInvestorToInvestorOnline(Business.Investor investor)
+        {
+            if (Business.Market.InvestorOnline != null)
+            {
+                bool flag = false;
+                int count = Business.Market.InvestorOnline.Count;
+
+                for (int i = 0; i < count; i++)
+                {
+                    if (Business.Market.InvestorOnline[i].InvestorID == investor.InvestorID &&
+                        Business.Market.InvestorOnline[i].LoginKey == investor.LoginKey)
+                    {   
+                        Business.Market.InvestorOnline[i].numTimeOut = 30;
+                        Business.Market.InvestorOnline[i].IsOnline = true;
+                        Business.Market.InvestorOnline[i].LastConnectTime = DateTime.Now;
+                        Business.Market.InvestorOnline[i].TickInvestor = new List<Tick>();
+                        Business.Market.InvestorOnline[i].ConnectType = investor.ConnectType;
+                        Business.Market.InvestorOnline[i].ClientCommandQueue = new List<string>();
+
+
+                        flag = true;
+                        break;
+                    }
+                }
+
+                if (!flag)
+                {
+                    investor.Code = investor.Code;
+                    investor.InvestorID = investor.InvestorID;
+                    investor.numTimeOut = 30;
+                    investor.IsOnline = true;
+                    investor.LastConnectTime = DateTime.Now;
+                    investor.LoginKey = investor.LoginKey;
+                    investor.LoginType = investor.LoginType;
+                    investor.TickInvestor = new List<Tick>();
+                    investor.InvestorGroupInstance = investor.InvestorGroupInstance;
+                    investor.ConnectType = investor.ConnectType;
+                    investor.ClientCommandQueue = new List<string>();
+
+                    Business.Market.InvestorOnline.Add(investor);
+                }
+                                
+                //send notify to manager
+                TradingServer.Facade.FacadeSendNotifyManagerRequest(1, investor);
+            }
+            //return;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void ReCalculationTotalMargin()
+        {
+            if (Business.Market.InvestorList != null)
+            {
+                int count = Business.Market.InvestorList.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (Business.Market.InvestorList[i].CommandList != null && Business.Market.InvestorList[i].CommandList.Count > 0)
+                    {
+                        Business.Margin newMargin = new Business.Margin();
+                        newMargin = Business.Market.InvestorList[i].CommandList[0].Symbol.CalculationTotalMargin(Business.Market.InvestorList[i].CommandList);
+                        Business.Market.InvestorList[i].Margin = newMargin.TotalMargin;
+                        Business.Market.InvestorList[i].FreeMargin = newMargin.TotalFreezeMargin;
+
+                        //Notify to mangager change margin
+                        TradingServer.Facade.FacadeSendNotifyManagerRequest(3, Business.Market.InvestorList[i]);
+                    }                    
+                }
+            }
+        }
+    }
+}

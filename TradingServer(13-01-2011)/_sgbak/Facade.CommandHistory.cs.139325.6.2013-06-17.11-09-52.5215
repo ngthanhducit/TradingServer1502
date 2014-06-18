@@ -1,0 +1,234 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace TradingServer
+{
+    public static partial class Facade
+    {        
+        /// <summary>
+        /// FACADE GET ALL COMMAND HISTORY IN DATABASE
+        /// </summary>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetCommandHistory()
+        {
+            return Facade.OpenTradeInstance.GetAllCommandHistory();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="commandID"></param>
+        /// <returns></returns>
+        public static Business.OpenTrade FacadeGetCommandHistoryByCommandID(int commandID)
+        {
+            return Facade.OpenTradeInstance.GetCommandHistoryByCommandID(commandID);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Start"></param>
+        /// <param name="Limit"></param>
+        /// <param name="InvestorID"></param>
+        /// <param name="TimeStart"></param>
+        /// <param name="TimeEnd"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetCommandHistoryWithStarLimit(int InvestorID, int ManagerID, DateTime TimeStart, DateTime TimeEnd)
+        {
+            return Facade.OpenTradeInstance.GetCommandHistoryWithStartLimit(InvestorID, ManagerID, TimeStart, TimeEnd);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="InvestorList"></param>
+        /// <param name="ManagerID"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadegetCommandHistoryWithInvestorList(List<int> InvestorList, int ManagerID, DateTime start, DateTime end)
+        {
+            return Facade.OpenTradeInstance.GetCommandHistoryWithInvestorList(InvestorList, ManagerID, start, end);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="investorID"></param>
+        /// <param name="dateTime"></param>
+        /// <param name="commandTypeID"></param>
+        /// <returns></returns>
+        public static Business.OpenTrade FacadeGetLastBalanceByInvestor(int investorID, DateTime dateTime, int commandTypeID, DateTime timeEnd)
+        {
+            return Facade.OpenTradeInstance.GetLastBalanceWithDateTime(investorID, dateTime, commandTypeID, timeEnd);
+        }
+
+        /// <summary>
+        /// FACADE GET COMMAND HISTORY BY INVESTOR ID IN DATABASE
+        /// </summary>
+        /// <param name="InvestorID"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetCommandHistoryByInvestor(int InvestorID)
+        {
+            return Facade.OpenTradeInstance.GetCommandHistoryByInvestor(InvestorID);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="investorID"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetHistoryByInvestorInMonth(int investorID)
+        {
+            return Facade.OpenTradeInstance.GetCommandHistoryByInvestorInMonth(investorID);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="investorID"></param>
+        /// <param name="rowNumber"></param>
+        /// <param name="from"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetHistoryByInvestor(int investorID, int rowNumber, int from)
+        {
+            return Facade.OpenTradeInstance.GetHistoryByInvestor(investorID, rowNumber, from);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rowNumber"></param>
+        /// <param name="from"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetAllHistoryWithStartEnd(int rowNumber, int from)
+        {
+            return Facade.OpenTradeInstance.GetAllHistoryWithStartEnd(rowNumber, from);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="commandCode"></param>
+        /// <returns></returns>
+        public static Business.OpenTrade FacadeGetHistoryByCommandCode(string commandCode)
+        {
+            return Facade.OpenTradeInstance.GetHistoryByCommandCode(commandCode);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="investorID"></param>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetCommandHistoryWithTime(int investorID, DateTime startTime, DateTime endTime)
+        {
+            return Facade.OpenTradeInstance.GetCommandHistoryWithTime(investorID, startTime, endTime);
+        }
+
+        /// <summary>
+        /// FACADE ADD NEW COMMAND HISTORY TO DATABASE
+        /// </summary>
+        /// <param name="InvestorID"></param>
+        /// <param name="CommandTypeID"></param>
+        /// <param name="CommandCode"></param>
+        /// <param name="OpenTime"></param>
+        /// <param name="OpenPrice"></param>
+        /// <param name="CloseTime"></param>
+        /// <param name="ClosePrice"></param>
+        /// <param name="Profit"></param>
+        /// <param name="Swap"></param>
+        /// <param name="Commission"></param>
+        /// <param name="ExpTime"></param>
+        /// <param name="Size"></param>
+        /// <param name="StopLoss"></param>
+        /// <param name="TakeProfit"></param>
+        /// <param name="clientCode"></param>
+        /// <param name="SymbolID"></param>
+        /// <returns></returns>
+        public static int FacadeAddNewCommandHistory(int InvestorID, int CommandTypeID, string CommandCode, DateTime OpenTime, double OpenPrice, DateTime CloseTime,
+                                            double ClosePrice, double Profit, double Swap, double Commission, DateTime ExpTime, double Size, double StopLoss,
+                                            double TakeProfit, string clientCode, int SymbolID, double Taxes, double AgentCommission, string Comment, string checkCode, 
+                                            double totalSwap, int refCommandID , string AgentRefConfig)
+        {
+            //string stringConnection = "Data Source=202.150.222.196;Initial Catalog=SyTrading;User ID=SyTrading;Password=-Dlog21P-";
+            //System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(stringConnection);
+            //conn.Open();
+            //string Command = "insert into ApplicationError(Name,Description,[DateTime]) VALUES(" +
+            //    "'Check Insert Close Command'" + "," + "'" + checkCode.ToString() + "'" + "," + "'" + DateTime.Now + "'" + ")";
+
+            //System.Data.SqlClient.SqlCommand command = new System.Data.SqlClient.SqlCommand(Command, conn);
+            //command.ExecuteNonQuery();
+            //conn.Close();
+
+            return Facade.OpenTradeInstance.AddNewCommandHistory(InvestorID, CommandTypeID, CommandCode, OpenTime, OpenPrice, CloseTime, ClosePrice, Profit, Swap,
+                                                            Commission, ExpTime, Size, StopLoss, TakeProfit, clientCode, SymbolID, Taxes, AgentCommission,
+                                                            Comment, checkCode, totalSwap, refCommandID, AgentRefConfig);
+        }
+
+        /// <summary>
+        /// ADD NEW COMMAND HISTORY USING ADD LAST BALANCE
+        /// </summary>
+        /// <param name="listInvestor"></param>
+        public static void FacadeAddNewCommandHistory(List<Business.Investor> listInvestor, DateTime time)
+        {
+            Facade.OpenTradeInstance.AddNewCommandHistory(listInvestor, time);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="CommandHistoryID"></param>
+        /// <returns></returns>
+        public static bool FacadeDeleteCommandHistory(int CommandHistoryID)
+        {
+            return Facade.OpenTradeInstance.DeleteHistoryCommand(CommandHistoryID);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="investorID"></param>
+        /// <returns></returns>
+        public static bool FacadeDeleteCommandHistoryByInvestorID(int investorID)
+        {
+            return Facade.OpenTradeInstance.DeleteCommandHistoryByInvestorID(investorID);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="objOpenTrade"></param>
+        /// <returns></returns>
+        public static bool FacadeUpdateCommandHistory(Business.OpenTrade objOpenTrade)
+        {
+            return Facade.OpenTradeInstance.UpdateCommandHistory(objOpenTrade);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="CommandCode"></param>
+        /// <param name="CommandHistoryID"></param>
+        /// <returns></returns>
+        public static bool FacadeUpdateCommandCodeHistory(string CommandCode, int CommandHistoryID)
+        {
+            return Facade.OpenTradeInstance.UpdateCommandCodeHistory(CommandCode, CommandHistoryID);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="isDelete"></param>
+        /// <param name="commandHistoryID"></param>
+        /// <returns></returns>
+        public static bool FacadeUpdateIsDeleteHistory(bool isDelete, int commandHistoryID)
+        {
+            return Facade.OpenTradeInstance.UpdateIsDeleteHistory(isDelete, commandHistoryID);
+        }
+    }
+}

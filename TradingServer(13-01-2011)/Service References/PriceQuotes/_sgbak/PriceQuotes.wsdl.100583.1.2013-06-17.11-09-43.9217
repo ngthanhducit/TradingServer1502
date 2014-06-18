@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="PriceQuotes" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/Imports">
+      <xsd:import schemaLocation="http://tradingwcf.sycomore.co.uk/PriceQuotes.svc?xsd=xsd0" namespace="http://tempuri.org/" />
+      <xsd:import schemaLocation="http://tradingwcf.sycomore.co.uk/PriceQuotes.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://tradingwcf.sycomore.co.uk/PriceQuotes.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/TradingServer.Business" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="IPriceQuotes_TopPriceByTimeFrame_InputMessage">
+    <wsdl:part name="parameters" element="tns:TopPriceByTimeFrame" />
+  </wsdl:message>
+  <wsdl:message name="IPriceQuotes_TopPriceByTimeFrame_OutputMessage">
+    <wsdl:part name="parameters" element="tns:TopPriceByTimeFrameResponse" />
+  </wsdl:message>
+  <wsdl:message name="IPriceQuotes_GetPriceByDateTime_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetPriceByDateTime" />
+  </wsdl:message>
+  <wsdl:message name="IPriceQuotes_GetPriceByDateTime_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetPriceByDateTimeResponse" />
+  </wsdl:message>
+  <wsdl:message name="IPriceQuotes_OnlineCandles_InputMessage">
+    <wsdl:part name="parameters" element="tns:OnlineCandles" />
+  </wsdl:message>
+  <wsdl:message name="IPriceQuotes_OnlineCandles_OutputMessage">
+    <wsdl:part name="parameters" element="tns:OnlineCandlesResponse" />
+  </wsdl:message>
+  <wsdl:message name="IPriceQuotes_GetTickOnline_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetTickOnline" />
+  </wsdl:message>
+  <wsdl:message name="IPriceQuotes_GetTickOnline_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetTickOnlineResponse" />
+  </wsdl:message>
+  <wsdl:message name="IPriceQuotes_CheckQueueTick_InputMessage">
+    <wsdl:part name="parameters" element="tns:CheckQueueTick" />
+  </wsdl:message>
+  <wsdl:message name="IPriceQuotes_CheckQueueTick_OutputMessage">
+    <wsdl:part name="parameters" element="tns:CheckQueueTickResponse" />
+  </wsdl:message>
+  <wsdl:message name="IPriceQuotes_CountQueueTick_InputMessage">
+    <wsdl:part name="parameters" element="tns:CountQueueTick" />
+  </wsdl:message>
+  <wsdl:message name="IPriceQuotes_CountQueueTick_OutputMessage">
+    <wsdl:part name="parameters" element="tns:CountQueueTickResponse" />
+  </wsdl:message>
+  <wsdl:portType name="IPriceQuotes">
+    <wsdl:operation name="TopPriceByTimeFrame">
+      <wsdl:input wsaw:Action="http://tempuri.org/IPriceQuotes/TopPriceByTimeFrame" message="tns:IPriceQuotes_TopPriceByTimeFrame_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IPriceQuotes/TopPriceByTimeFrameResponse" message="tns:IPriceQuotes_TopPriceByTimeFrame_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetPriceByDateTime">
+      <wsdl:input wsaw:Action="http://tempuri.org/IPriceQuotes/GetPriceByDateTime" message="tns:IPriceQuotes_GetPriceByDateTime_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IPriceQuotes/GetPriceByDateTimeResponse" message="tns:IPriceQuotes_GetPriceByDateTime_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="OnlineCandles">
+      <wsdl:input wsaw:Action="http://tempuri.org/IPriceQuotes/OnlineCandles" message="tns:IPriceQuotes_OnlineCandles_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IPriceQuotes/OnlineCandlesResponse" message="tns:IPriceQuotes_OnlineCandles_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetTickOnline">
+      <wsdl:input wsaw:Action="http://tempuri.org/IPriceQuotes/GetTickOnline" message="tns:IPriceQuotes_GetTickOnline_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IPriceQuotes/GetTickOnlineResponse" message="tns:IPriceQuotes_GetTickOnline_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckQueueTick">
+      <wsdl:input wsaw:Action="http://tempuri.org/IPriceQuotes/CheckQueueTick" message="tns:IPriceQuotes_CheckQueueTick_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IPriceQuotes/CheckQueueTickResponse" message="tns:IPriceQuotes_CheckQueueTick_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="CountQueueTick">
+      <wsdl:input wsaw:Action="http://tempuri.org/IPriceQuotes/CountQueueTick" message="tns:IPriceQuotes_CountQueueTick_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IPriceQuotes/CountQueueTickResponse" message="tns:IPriceQuotes_CountQueueTick_OutputMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_IPriceQuotes" type="tns:IPriceQuotes">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="TopPriceByTimeFrame">
+      <soap:operation soapAction="http://tempuri.org/IPriceQuotes/TopPriceByTimeFrame" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetPriceByDateTime">
+      <soap:operation soapAction="http://tempuri.org/IPriceQuotes/GetPriceByDateTime" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="OnlineCandles">
+      <soap:operation soapAction="http://tempuri.org/IPriceQuotes/OnlineCandles" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetTickOnline">
+      <soap:operation soapAction="http://tempuri.org/IPriceQuotes/GetTickOnline" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckQueueTick">
+      <soap:operation soapAction="http://tempuri.org/IPriceQuotes/CheckQueueTick" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CountQueueTick">
+      <soap:operation soapAction="http://tempuri.org/IPriceQuotes/CountQueueTick" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="PriceQuotes">
+    <wsdl:port name="BasicHttpBinding_IPriceQuotes" binding="tns:BasicHttpBinding_IPriceQuotes">
+      <soap:address location="http://tradingwcf.sycomore.co.uk/PriceQuotes.svc" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

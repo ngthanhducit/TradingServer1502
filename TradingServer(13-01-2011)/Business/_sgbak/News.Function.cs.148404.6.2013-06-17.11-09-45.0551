@@ -1,0 +1,78 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace TradingServer.Business
+{
+    public partial class News
+    {
+        #region Create Instance Class DBWNews
+        private static DBW.DBWNews dbwNews;
+        private static DBW.DBWNews DBWNewsInstance
+        {
+            get
+            {
+                if (News.dbwNews == null)
+                {
+                    News.dbwNews = new DBW.DBWNews();
+                }
+                return News.dbwNews;
+            }
+        }
+        #endregion
+
+        internal int AddNews(string title, string body, DateTime timeAdd, string category)
+        {
+            int result = -1;
+            result = News.DBWNewsInstance.InsertNews(title, body, timeAdd, category);
+            if (result > 0)
+            {
+                Business.News news = new News();
+                news.ID = result;
+                news.Body = body;
+                news.Catetory = category;
+                news.DateCreated = timeAdd;
+                news.Title = title;
+                Market.NewsList.Add(news);
+                if (Market.NewsList.Count > 10)
+                {
+                    Market.NewsList.RemoveAt(0);
+                }
+                StringBuilder newsString = new StringBuilder();
+                newsString.Append("DPT00880$");
+                newsString.Append(news.ID + "█");
+                newsString.Append(news.Title + "█");
+                newsString.Append(news.Catetory + "█");
+                newsString.Append(news.DateCreated + "█");
+                newsString.Append(news.Body);
+                for (int i = 0; i < Market.InvestorList.Count; i++)
+                {
+                    if (Market.InvestorList[i].IsOnline)
+                    {
+                        if (Market.InvestorList[i].ClientCommandQueue == null) 
+                            Market.InvestorList[i].ClientCommandQueue = new List<string>();
+
+                        //int countInvestorOnline = Business.Market.InvestorList[i].CountInvestorOnline(Business.Market.InvestorList[i].InvestorID);
+                        //if (countInvestorOnline > 0)
+                            Market.InvestorList[i].ClientCommandQueue.Add(newsString.ToString());
+
+                        //SEND COMMAND TO CLIENT USING WEBSOCKET
+                        Business.Market.marketInstance.SendReponseAsyn(Business.Market.InvestorList[i], newsString.ToString());
+                    }
+                }
+            }
+            return result;
+        }
+
+        internal void GetTopNews()
+        {
+            List<News> newsList = new List<News>();
+            newsList = News.DBWNewsInstance.GetTopNews();
+            if (newsList != null)
+            {
+                Market.NewsList = newsList;
+            }
+        }
+    }
+}

@@ -1,0 +1,85 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace TradingServer.Business
+{
+    public partial class Symbol : IPresenter.ICalculatorClient
+    {
+        internal List<Business.OpenTrade> CommandList { get; set; }
+        internal List<Business.OpenTrade> BinaryCommandList { get; set; }        
+        public List<Business.ParameterItem> ParameterItems { get; set; }        
+        public List<Business.PriceAlert> AlertQueue { get; set; }
+
+        public int SymbolID { get; set; }
+        public string Name { get; set; }
+        public List<Business.Symbol> RefSymbol { get; set; }
+        public int SecurityID { get; set; }
+        internal IPresenter.IMarketArea MarketAreaRef { get; set; }
+        public Business.Tick TickValue { get; set; }
+        public bool IsProcess { get; set; }
+        public bool IsQuote { get; set; }
+        public bool IsTrade { get; set; }
+        public bool IsHoliday { get; set; }
+        public Business.TickLog TickCurrent { get; set; }
+
+        #region Implement Interface ICalculatorClient
+        public string Comment { get; set; }
+        public TaskComplete TaskWork { get; set; }
+        public TaskDelegate TaskJob { get; set; }
+        public string TaskName { get; set; }
+        public bool IsActive { get; set; }
+        #endregion        
+
+        #region Property Setting Symbol
+        public double ContractSize { get; set; }
+        public double TickPrice { get; set; }
+        public double TickSize { get; set; }
+        public string ProfitCalculation { get; set; }
+        public int Digit { get; set; }
+        public double SpreadByDefault { get; set; }
+        public double SpreadBalace { get; set; }
+        public bool LongOnly { get; set; }
+        public int LimitLevel { get; set; }
+        public int StopLevel { get; set; }
+        public int StopLossTakeProfitLevel { get; set; }
+        //public int LimitStopLevel { get; set; }
+        public int FreezeLevel { get; set; }
+        public bool AllowReadTime { get; set; }        
+        public int Filter { get; set; }
+        public int FiltrationsLevel { get; set; }
+        public string AutoLimit { get; set; }
+        public bool IsHedged { get; set; }
+        public string Trade { get; set; }
+        public double SpreadDifference { get; set; }
+        public string Currency { get; set; }
+        public double InitialMargin { get; set; }
+        public DateTime TimeCloseOnly { get; set; }
+        public DateTime TimeExp { get; set; }
+        public bool ApplySpread { get; set; }
+        public bool IsEnableFreezeMargin { get; set; }
+        public bool UseFreezeMargin { get; set; }
+        public double FreezeMargin { get; set; }
+        public double MarginHedged { get; set; }
+        public double FreezeMarginHedged { get; set; }
+        public double MinLots { get; set; }
+        public double MaxLots { get; set; }
+        public double StepLots { get; set; }
+        public EnumMT4.Execution ExecutionTrade { get; set; }
+        #endregion
+
+        #region PROPERTY OF EVENT FUTUTRE
+        public bool isCloseOnlyFuture { get; set; }
+        #endregion
+
+        #region PROPERTY MONITOR SYMBOL
+        public List<string> ListSymbolMonitor { get; set; }
+        public bool isMonitorSymbol { get; set; }
+        #endregion
+
+        #region PROPERTY MARKET ONHOLD
+        public int TimeOnHold { get; set; }
+        #endregion
+    }
+}

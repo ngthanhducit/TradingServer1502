@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="9b36f777-0cb0-4541-aed1-c6c814e6c2f7" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://streamfilewcf.sycomore.vn:2002/StreamAlertWCF.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="StreamAlertWCF.disco" MetadataType="Disco" ID="8faa44a8-21ce-46cd-8545-3a8458f1856f" SourceId="1" SourceUrl="http://streamfilewcf.sycomore.vn:2002/StreamAlertWCF.svc?disco" />
+    <MetadataFile FileName="StreamAlertWCF.wsdl" MetadataType="Wsdl" ID="5dbcb7a0-6ed2-4c87-9272-9d40efb0d0cf" SourceId="1" SourceUrl="http://streamfilewcf.sycomore.vn:2002/StreamAlertWCF.svc?wsdl" />
+    <MetadataFile FileName="StreamAlertWCF.xsd" MetadataType="Schema" ID="4275b64a-0a57-462a-9a56-3201f259e89b" SourceId="1" SourceUrl="http://streamfilewcf.sycomore.vn:2002/StreamAlertWCF.svc?xsd=xsd1" />
+    <MetadataFile FileName="StreamAlertWCF1.xsd" MetadataType="Schema" ID="3ce4ac60-b2e4-48be-99db-1a4174a10f47" SourceId="1" SourceUrl="http://streamfilewcf.sycomore.vn:2002/StreamAlertWCF.svc?xsd=xsd0" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

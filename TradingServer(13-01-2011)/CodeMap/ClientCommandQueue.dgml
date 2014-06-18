@@ -1,0 +1,305 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DirectedGraph DataVirtualized="True" Layout="ForceDirected" xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="(@1 @2 @3 Member=(Name=FacadeCloseSpotCommand @4))" Category="CodeSchema_Method" Bounds="294.094777039695,1566.88,181.316666666667,25.96" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="FacadeCloseSpotCommand" FunctionTypeFlags="Method" Label="FacadeCloseSpotCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///c:/users/public/documents/developer/syfxsystem/tradingserver1502/tradingserver(13-01-2011)/clientfacade.cs&quot; StartLineNumber=1493 StartCharacterOffset=8 EndLineNumber=1493 EndCharacterOffset=8)" />
+    <Node Id="(@1 @2 @3 Member=(Name=FacadeGetClientCommandQueue @10))" Category="CodeSchema_Method" Bounds="41.8371277045146,575.687553210833,212.19,25.96" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="FacadeGetClientCommandQueue" FunctionTypeFlags="Method" Label="FacadeGetClientCommandQueue" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/ClientFacade.Debug.cs&quot; StartLineNumber=168 StartCharacterOffset=8 EndLineNumber=168 EndCharacterOffset=8)" />
+    <Node Id="(@1 @2 @3 Member=(Name=FacadeGetData OverloadingParameters=[@9,@15,@9]))" Category="CodeSchema_Method" Bounds="524.316441348916,615.56,116.23,25.96" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="FacadeGetData" FunctionTypeFlags="Method" Label="FacadeGetData" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///c:/users/public/documents/developer/syfxsystem/tradingserver1502/tradingserver(13-01-2011)/clientfacade.cs&quot; StartLineNumber=5546 StartCharacterOffset=8 EndLineNumber=5546 EndCharacterOffset=8)" />
+    <Node Id="(@1 @2 @3 Member=(Name=FacadeGetDataServer OverloadingParameters=[@9,@15,@9]))" Category="CodeSchema_Method" Bounds="585.654215404955,727.48,149.25,25.96" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="FacadeGetDataServer" FunctionTypeFlags="Method" Label="FacadeGetDataServer" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///c:/users/public/documents/developer/syfxsystem/tradingserver1502/tradingserver(13-01-2011)/clientfacade.cs&quot; StartLineNumber=5359 StartCharacterOffset=8 EndLineNumber=5359 EndCharacterOffset=8)" />
+    <Node Id="(@1 @2 @3 Member=(Name=FacadeMakeBinaryCommand @4))" Category="CodeSchema_Method" Bounds="23.8845494194829,911.447553210833,189.843333333333,25.96" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="FacadeMakeBinaryCommand" FunctionTypeFlags="Method" Label="FacadeMakeBinaryCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/ClientFacade.BinaryTrading.cs&quot; StartLineNumber=75 StartCharacterOffset=8 EndLineNumber=75 EndCharacterOffset=8)" />
+    <Node Id="(@1 @2 @3 Member=(Name=FacadeMakeCommand @4))" Category="CodeSchema_Method" Bounds="199.953070270347,1191.24755321083,157.18,25.96" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="FacadeMakeCommand" FunctionTypeFlags="Method" Label="FacadeMakeCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///c:/users/public/documents/developer/syfxsystem/tradingserver1502/tradingserver(13-01-2011)/clientfacade.cs&quot; StartLineNumber=32 StartCharacterOffset=8 EndLineNumber=32 EndCharacterOffset=8)" />
+    <Node Id="(@1 @2 @3 Member=(Name=FacadeMultiCloseCommand @4))" Category="CodeSchema_Method" Bounds="118.74674278234,463.767553210833,184.24,25.96" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="FacadeMultiCloseCommand" FunctionTypeFlags="Method" Label="FacadeMultiCloseCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///c:/users/public/documents/developer/syfxsystem/tradingserver1502/tradingserver(13-01-2011)/clientfacade.cs&quot; StartLineNumber=2201 StartCharacterOffset=8 EndLineNumber=2201 EndCharacterOffset=8)" />
+    <Node Id="(@1 @2 @3 Member=(Name=FacadeMultiUpdateCommand @4))" Category="CodeSchema_Method" Bounds="287.393461841813,111.92,194.316666666667,25.96" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="FacadeMultiUpdateCommand" FunctionTypeFlags="Method" Label="FacadeMultiUpdateCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///c:/users/public/documents/developer/syfxsystem/tradingserver1502/tradingserver(13-01-2011)/clientfacade.cs&quot; StartLineNumber=3977 StartCharacterOffset=8 EndLineNumber=3977 EndCharacterOffset=8)" />
+    <Node Id="(@1 @2 @3 Member=(Name=FacadeNewGetData OverloadingParameters=[@9,@9,@15,@9,@15]))" Category="CodeSchema_Method" Bounds="465.754255201192,503.64,140.156666666667,25.96" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="FacadeNewGetData" FunctionTypeFlags="Method" Label="FacadeNewGetData" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///c:/users/public/documents/developer/syfxsystem/tradingserver1502/tradingserver(13-01-2011)/clientfacade.cs&quot; StartLineNumber=5658 StartCharacterOffset=8 EndLineNumber=5658 EndCharacterOffset=8)" />
+    <Node Id="(@1 @2 @3 Member=(Name=FacadeUpdateOnlineCommand @4))" Category="CodeSchema_Method" Bounds="284.08797327794,1.13686837721616E-13,201.586666666667,25.96" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="FacadeUpdateOnlineCommand" FunctionTypeFlags="Method" Label="FacadeUpdateOnlineCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///c:/users/public/documents/developer/syfxsystem/tradingserver1502/tradingserver(13-01-2011)/clientfacade.cs&quot; StartLineNumber=3293 StartCharacterOffset=8 EndLineNumber=3293 EndCharacterOffset=8)" />
+    <Node Id="(@1 @2 @3 Member=(Name=FacadeWebGetData OverloadingParameters=[@9,@15,@9]))" Category="CodeSchema_Method" Bounds="313.633292445341,1343.04,140.77,25.96" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="FacadeWebGetData" FunctionTypeFlags="Method" Label="FacadeWebGetData" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///c:/users/public/documents/developer/syfxsystem/tradingserver1502/tradingserver(13-01-2011)/clientfacade.cs&quot; StartLineNumber=6443 StartCharacterOffset=8 EndLineNumber=6443 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @11 Member=(Name=AddRequestDealerToInvestor OverloadingParameters=[(@1 @5 Type=RequestDealer)]))" Category="CodeSchema_Method" Bounds="5.4286484859785,855.487553210833,190.46,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="AddRequestDealerToInvestor" FunctionTypeFlags="Method" Label="AddRequestDealerToInvestor" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Market.cs&quot; StartLineNumber=1145 StartCharacterOffset=8 EndLineNumber=1145 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @11 Member=(Name=BeginCalculationSwap @16))" Category="CodeSchema_Method" Bounds="304.503394230075,335.76,152.71,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="BeginCalculationSwap" FunctionTypeFlags="Method" Label="BeginCalculationSwap" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Market.FunctionTimeEvent.cs&quot; StartLineNumber=1762 StartCharacterOffset=8 EndLineNumber=1762 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @11 Member=(Name=CloseTradeSymbol @16))" Category="CodeSchema_Method" Bounds="315.113831312345,1287.08,134.153333333333,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="CloseTradeSymbol" FunctionTypeFlags="Method" Label="CloseTradeSymbol" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Market.FunctionTimeEvent.cs&quot; StartLineNumber=145 StartCharacterOffset=8 EndLineNumber=145 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @11 Member=(Name=ExtractCommandServer OverloadingParameters=[@15,@15,@15]))" Category="CodeSchema_Method" Bounds="304.901128540542,1510.92,159.65,25.96" CodeSchemaProperty_IsPublic="True" CommonLabel="ExtractCommandServer" FunctionTypeFlags="Method" Label="ExtractCommandServer" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Market.StringPort.cs&quot; StartLineNumber=15 StartCharacterOffset=8 EndLineNumber=15 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @11 Member=(Name=FindAndCancelOpenTradeInBinaryCommandList @10))" Category="CodeSchema_Method" Bounds="97.3182547754015,167.88,289.81,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="FindAndCancelOpenTradeInBinaryCommandList" FunctionTypeFlags="Method" Label="FindAndCancelOpenTradeInBinaryCommandList" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Market.ExtractCommand.cs&quot; StartLineNumber=1499 StartCharacterOffset=8 EndLineNumber=1499 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @11 Member=(Name=FixBalanceAccount OverloadingParameters=[@14,@14,@14,@9,@14]))" Category="CodeSchema_Method" Bounds="228.032640923613,1023.36755321083,134.386666666667,25.96" CodeSchemaProperty_IsPrivate="True" CommonLabel="FixBalanceAccount" FunctionTypeFlags="Method" Label="FixBalanceAccount" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Market.PrivateFunction.cs&quot; StartLineNumber=1655 StartCharacterOffset=8 EndLineNumber=1655 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @11 Member=(Name=OpenTradeSymbol @16))" Category="CodeSchema_Method" Bounds="222.549686865062,1079.32755321083,134.583333333333,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="OpenTradeSymbol" FunctionTypeFlags="Method" Label="OpenTradeSymbol" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Market.FunctionTimeEvent.cs&quot; StartLineNumber=532 StartCharacterOffset=8 EndLineNumber=532 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @11 Member=(Name=ProcessSettingOrder @16))" Category="CodeSchema_Method" Bounds="312.394357180889,1399,144.213333333333,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="ProcessSettingOrder" FunctionTypeFlags="Method" Label="ProcessSettingOrder" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Market.FunctionTimeEvent.cs&quot; StartLineNumber=2965 StartCharacterOffset=8 EndLineNumber=2965 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @11 Member=(Name=SendNotifyToClient OverloadingParameters=[@15,@9,@9]))" Category="CodeSchema_Method" Bounds="392.419407590279,1063.24,138.743333333333,25.96" CodeSchemaProperty_IsInternal="True" CodeSchemaProperty_IsStatic="True" CommonLabel="SendNotifyToClient" FunctionTypeFlags="Method" Label="SendNotifyToClient" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Market.PrivateFunction.cs&quot; StartLineNumber=1534 StartCharacterOffset=8 EndLineNumber=1534 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @11 Member=ProcessNotifyMessage)" Category="CodeSchema_Method" Bounds="307.073305994497,1454.96,155.163333333333,25.96" CodeSchemaProperty_IsInternal="True" CodeSchemaProperty_IsStatic="True" CommonLabel="ProcessNotifyMessage" FunctionTypeFlags="Method" Label="ProcessNotifyMessage" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Market.Thread.cs&quot; StartLineNumber=1156 StartCharacterOffset=8 EndLineNumber=1156 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=(Name=AddCredit OverloadingParameters=[@14,@9,@15]))" Category="CodeSchema_Method" Bounds="404.523008015583,596.890608397508,89.7933333333334,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="AddCredit" FunctionTypeFlags="Method" Label="AddCredit" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.Process.cs&quot; StartLineNumber=684 StartCharacterOffset=8 EndLineNumber=684 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=(Name=CheckPrimaryInvestorOnline OverloadingParameters=[@9,(@1 @5 Type=TypeLogin)]))" Category="CodeSchema_Method" Bounds="561.060737465625,895.36,185.313333333333,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="CheckPrimaryInvestorOnline" FunctionTypeFlags="Method" Label="CheckPrimaryInvestorOnline" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.Process.cs&quot; StartLineNumber=1635 StartCharacterOffset=8 EndLineNumber=1635 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=(Name=Deposit OverloadingParameters=[@14,@9,@15]))" Category="CodeSchema_Method" Bounds="243.727982752816,911.447553210833,76.84,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="Deposit" FunctionTypeFlags="Method" Label="Deposit" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.Process.cs&quot; StartLineNumber=579 StartCharacterOffset=8 EndLineNumber=579 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=(Name=MultipleCloseCommand @13))" Category="CodeSchema_Method" Bounds="387.133170270346,1231.12,163.516666666667,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="MultipleCloseCommand" FunctionTypeFlags="Method" Label="MultipleCloseCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.Process.cs&quot; StartLineNumber=14 StartCharacterOffset=8 EndLineNumber=14 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=(Name=NewLogin OverloadingParameters=[@15,@15,@15,(@17 Namespace=System.Net.Sockets Type=Socket)]))" Category="CodeSchema_Method" Bounds="332.986842782339,463.767553210833,89.37,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="NewLogin" FunctionTypeFlags="Method" Label="NewLogin" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///c:/users/public/documents/developer/syfxsystem/tradingserver1502/tradingserver(13-01-2011)/business/investor.requestdata.cs&quot; StartLineNumber=932 StartCharacterOffset=8 EndLineNumber=932 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=(Name=NewLogin OverloadingParameters=[@15,@15,@9,@15,(@17 Namespace=System.Net.Sockets Type=Socket)]))" Category="CodeSchema_Method" Bounds="346.384155201192,540.930608397508,89.37,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="NewLogin" FunctionTypeFlags="Method" Label="NewLogin" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///c:/users/public/documents/developer/syfxsystem/tradingserver1502/tradingserver(13-01-2011)/business/investor.requestdata.cs&quot; StartLineNumber=691 StartCharacterOffset=8 EndLineNumber=691 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=(Name=SendCommandToInvestorOnline OverloadingParameters=[@9,(@1 @5 Type=TypeLogin),@15]))" Category="CodeSchema_Method" Bounds="149.12640360368,1135.28755321083,208.006666666667,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="SendCommandToInvestorOnline" FunctionTypeFlags="Method" Label="SendCommandToInvestorOnline" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.Process.cs&quot; StartLineNumber=1810 StartCharacterOffset=8 EndLineNumber=1810 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=(Name=SubCredit OverloadingParameters=[@14,@9,@15]))" Category="CodeSchema_Method" Bounds="185.530520433942,631.647553210833,88.1366666666667,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="SubCredit" FunctionTypeFlags="Method" Label="SubCredit" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.Process.cs&quot; StartLineNumber=781 StartCharacterOffset=8 EndLineNumber=781 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=(Name=UpdateInvestor OverloadingParameters=[(@1 @5 @12),@15,@15]))" Category="CodeSchema_Method" Bounds="548.922203834249,839.4,117.183333333333,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="UpdateInvestor" FunctionTypeFlags="Method" Label="UpdateInvestor" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.Process.cs&quot; StartLineNumber=2077 StartCharacterOffset=8 EndLineNumber=2077 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=(Name=UpdateInvestor OverloadingParameters=[(@1 @5 @12)]))" Category="CodeSchema_Method" Bounds="392.419406169878,1007.28,117.183333333333,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="UpdateInvestor" FunctionTypeFlags="Method" Label="UpdateInvestor" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.Process.cs&quot; StartLineNumber=1878 StartCharacterOffset=8 EndLineNumber=1878 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=(Name=WithDrawals OverloadingParameters=[@9,@14,@15]))" Category="CodeSchema_Method" Bounds="213.937388534525,519.727553210833,102.446666666667,25.96" CodeSchemaProperty_IsPublic="True" CommonLabel="WithDrawals" FunctionTypeFlags="Method" Label="WithDrawals" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.Process.cs&quot; StartLineNumber=1183 StartCharacterOffset=8 EndLineNumber=1183 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=.ctor)" Category="CodeSchema_Method" Bounds="350.567986996757,949.508042461263,78.37,25.96" CodeSchemaProperty_IsConstructor="True" CodeSchemaProperty_IsPublic="True" CommonLabel="Investor" FunctionTypeFlags="Constructor" Label="Investor" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.cs&quot; StartLineNumber=13 StartCharacterOffset=8 EndLineNumber=13 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=ProcessSetTask)" Category="CodeSchema_Method" Bounds="325.502806748175,279.8,116.096666666667,25.96" CodeSchemaProperty_IsPrivate="True" CommonLabel="ProcessSetTask" FunctionTypeFlags="Method" Label="ProcessSetTask" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.ProcessSetTask.cs&quot; StartLineNumber=44 StartCharacterOffset=8 EndLineNumber=44 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @12 Member=StopOutLevel)" Category="CodeSchema_Method" Bounds="541.729434226198,671.52,107.283333333333,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="StopOutLevel" FunctionTypeFlags="Method" Label="StopOutLevel" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.cs&quot; StartLineNumber=368 StartCharacterOffset=8 EndLineNumber=368 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @6 Member=(Name=DeleteOpenTradeByAdmin @10))" Category="CodeSchema_Method" Bounds="0,743.567553210833,176.82,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="DeleteOpenTradeByAdmin" FunctionTypeFlags="Method" Label="DeleteOpenTradeByAdmin" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/OpenTrade.DatabaseAccess.cs&quot; StartLineNumber=1216 StartCharacterOffset=8 EndLineNumber=1216 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @6 Member=(Name=DeleteOpenTradeByCommandID @10))" Category="CodeSchema_Method" Bounds="452.35694278234,447.68,208.683333333333,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="DeleteOpenTradeByCommandID" FunctionTypeFlags="Method" Label="DeleteOpenTradeByCommandID" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/OpenTrade.DatabaseAccess.cs&quot; StartLineNumber=859 StartCharacterOffset=8 EndLineNumber=859 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @6 Member=(Name=DeleteOpenTradeByRefCommandID @10))" Category="CodeSchema_Method" Bounds="63.1815755033034,967.407553210833,225.893333333333,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="DeleteOpenTradeByRefCommandID" FunctionTypeFlags="Method" Label="DeleteOpenTradeByRefCommandID" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/OpenTrade.DatabaseAccess.cs&quot; StartLineNumber=1072 StartCharacterOffset=8 EndLineNumber=1072 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @6 Member=(Name=UpdateOpenTrade OverloadingParameters=[@9,@9,@14,@18,@14,@18,@14,@14,@14,@15,@14,@15,@14,@14]))" Category="CodeSchema_Method" Bounds="576.904319922136,783.44,133.89,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="UpdateOpenTrade" FunctionTypeFlags="Method" Label="UpdateOpenTrade" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/OpenTrade.DatabaseAccess.cs&quot; StartLineNumber=487 StartCharacterOffset=8 EndLineNumber=487 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @6 Member=(Name=UpdateOpenTrade OverloadingParameters=[@9,@9,@14,@18,@14,@18,@14,@14,@14,@15,@15,@14]))" Category="CodeSchema_Method" Bounds="399.874274579448,391.72,133.89,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="UpdateOpenTrade" FunctionTypeFlags="Method" Label="UpdateOpenTrade" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/OpenTrade.DatabaseAccess.cs&quot; StartLineNumber=683 StartCharacterOffset=8 EndLineNumber=683 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 @6 Member=(Name=UpdateRuleClosePending OverloadingParameters=[(@1 @5 @6),@14]))" Category="CodeSchema_Method" Bounds="410.800152536647,223.84,170.316666666667,25.96" CodeSchemaProperty_IsPrivate="True" CommonLabel="UpdateRuleClosePending" FunctionTypeFlags="Method" Label="UpdateRuleClosePending" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/OpenTrade.cs&quot; StartLineNumber=1085 StartCharacterOffset=8 EndLineNumber=1085 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 Type=Agent Member=(Name=AddRequestDealerToInvestor OverloadingParameters=[(@1 @5 Type=RequestDealer)]))" Category="CodeSchema_Method" Bounds="289.616255018849,55.9600000000002,190.46,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="AddRequestDealerToInvestor" FunctionTypeFlags="Method" Label="AddRequestDealerToInvestor" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Agent.Dealer.cs&quot; StartLineNumber=1353 StartCharacterOffset=8 EndLineNumber=1353 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 Type=FutureCommand Member=(Name=AddCommand @13))" Category="CodeSchema_Method" Bounds="256.904174579448,407.807553210833,112.97,25.96" CodeSchemaProperty_IsPublic="True" CommonLabel="AddCommand" FunctionTypeFlags="Method" Label="AddCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/FutureCommand.cs&quot; StartLineNumber=22 StartCharacterOffset=8 EndLineNumber=22 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 Type=FutureCommand Member=(Name=UpdateCommand @13))" Category="CodeSchema_Method" Bounds="417.128354775402,167.88,129.91,25.96" CodeSchemaProperty_IsPublic="True" CommonLabel="UpdateCommand" FunctionTypeFlags="Method" Label="UpdateCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/FutureCommand.cs&quot; StartLineNumber=615 StartCharacterOffset=8 EndLineNumber=615 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 Type=News Member=(Name=AddNews OverloadingParameters=[@15,@15,@18,@15]))" Category="CodeSchema_Method" Bounds="142.064615671622,799.527553210833,86.8933333333333,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="AddNews" FunctionTypeFlags="Method" Label="AddNews" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/News.Function.cs&quot; StartLineNumber=24 StartCharacterOffset=8 EndLineNumber=24 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 Type=PriceAlert Member=(Name=SendAlert OverloadingParameters=[(@1 @5 Type=PriceAlert),@9,@9]))" Category="CodeSchema_Method" Bounds="147.516421879268,687.607553210833,87.67,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="SendAlert" FunctionTypeFlags="Method" Label="SendAlert" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/PriceAlert.cs&quot; StartLineNumber=217 StartCharacterOffset=8 EndLineNumber=217 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 Type=SpotCommand Member=(Name=AddCommand @13))" Category="CodeSchema_Method" Bounds="267.830052536647,223.84,112.97,25.96" CodeSchemaProperty_IsPublic="True" CommonLabel="AddCommand" FunctionTypeFlags="Method" Label="AddCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/SpotCommand.cs&quot; StartLineNumber=26 StartCharacterOffset=8 EndLineNumber=26 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 Type=SpotCommand Member=(Name=CloseCommand @13))" Category="CodeSchema_Method" Bounds="387.133120198396,1119.2,119.833333333333,25.96" CodeSchemaProperty_IsPublic="True" CommonLabel="CloseCommand" FunctionTypeFlags="Method" Label="CloseCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/SpotCommand.cs&quot; StartLineNumber=813 StartCharacterOffset=8 EndLineNumber=813 EndCharacterOffset=8)" />
+    <Node Id="(@1 @5 Type=SpotCommand Member=(Name=UpdateCommand @13))" Category="CodeSchema_Method" Bounds="387.133170270347,1175.16,129.91,25.96" CodeSchemaProperty_IsPublic="True" CommonLabel="UpdateCommand" FunctionTypeFlags="Method" Label="UpdateCommand" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/SpotCommand.cs&quot; StartLineNumber=1120 StartCharacterOffset=8 EndLineNumber=1120 EndCharacterOffset=8)" />
+    <Node Id="(@1 Namespace=TradingServer.DBW Type=DBWOnlineCommand Member=(Name=MultipleUpdateOpenTrade OverloadingParameters=[(@7 Namespace=System.Collections.Generic Type=(Name=List GenericParameterCount=1 GenericArguments=[(@1 @5 @6)])),@14,@14]))" Category="CodeSchema_Method" Bounds="524.316487287321,559.6,177.573333333333,25.96" CodeSchemaProperty_IsInternal="True" CommonLabel="MultipleUpdateOpenTrade" FunctionTypeFlags="Method" Label="MultipleUpdateOpenTrade" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/DBW/DBWOnlineCommand.cs&quot; StartLineNumber=1259 StartCharacterOffset=8 EndLineNumber=1259 EndCharacterOffset=8)" />
+    <Node Id="(@1 Namespace=TradingServer.Notifycation Type=Notifycation Member=(Name=SendNotifyToClient OverloadingParameters=[(@1 @5 @12),@15]))" Category="CodeSchema_Method" Bounds="496.839217172635,951.32,138.743333333333,25.96" CodeSchemaProperty_IsPublic="True" CommonLabel="SendNotifyToClient" FunctionTypeFlags="Method" Label="SendNotifyToClient" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Notifycation/Notifycation.cs&quot; StartLineNumber=29 StartCharacterOffset=8 EndLineNumber=29 EndCharacterOffset=8)" />
+    <Node Id="@19" Category="CodeSchema_Property" Bounds="295.280317925766,761.922500937921,179.102394787382,25" CodeSchemaProperty_IsPublic="True" DelayedChildNodesState="NotFetched" FunctionTypeFlags="Property Assignment" Group="Collapsed" Label="ClientCommandQueue" Language="{B5E9BD34-6D3E-4B5D-925E-8A43B79820B4}" SourceLocation="(Assembly=&quot;file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)/Business/Investor.Property.cs&quot; StartLineNumber=70 StartCharacterOffset=8 EndLineNumber=70 EndCharacterOffset=8)" />
+  </Nodes>
+  <Links>
+    <Link Source="(@1 @2 @3 Member=(Name=FacadeCloseSpotCommand @4))" Target="@19" Bounds="296.556610107422,795.512390136719,81.6806945800781,771.367614746094" />
+    <Link Source="(@1 @2 @3 Member=(Name=FacadeGetClientCommandQueue @10))" Target="@19" Bounds="201.624893188477,601.647583007813,169.986282348633,152.765930175781" />
+    <Link Source="(@1 @2 @3 Member=(Name=FacadeGetData OverloadingParameters=[@9,@15,@9]))" Target="@19" Bounds="409.003498427988,641.52,155.846347984097,115.057001603189" />
+    <Link Source="(@1 @2 @3 Member=(Name=FacadeGetDataServer OverloadingParameters=[@9,@15,@9]))" Target="@19" Bounds="482.0000747548,749.661208184732,103.654140650155,12.7804800982457" />
+    <Link Source="(@1 @2 @3 Member=(Name=FacadeMakeBinaryCommand @4))" Target="@19" Bounds="147.358505249023,791.691223144531,209.833023071289,119.75634765625" />
+    <Link Source="(@1 @2 @3 Member=(Name=FacadeMakeCommand @4))" Target="@19" Bounds="313.605072021484,795.512390136719,64.6322326660156,395.735168457031" />
+    <Link Source="(@1 @2 @3 Member=(Name=FacadeMultiCloseCommand @4))" Target="@19" Bounds="208.57307434082,489.7275390625,164.534561157227,264.402038574219" />
+    <Link Source="(@1 @2 @3 Member=(Name=FacadeMultiUpdateCommand @4))" Target="@19" Bounds="246.769989013672,137.880004882813,146.197387695313,615.25927734375" />
+    <Link Source="(@1 @2 @3 Member=(Name=FacadeNewGetData OverloadingParameters=[@9,@9,@15,@9,@15]))" Target="@19" Bounds="399.639587402344,529.599975585938,131.579650878906,225.129211425781" />
+    <Link Source="(@1 @2 @3 Member=(Name=FacadeUpdateOnlineCommand @4))" Target="@19" Bounds="385.925842285156,25.9599990844727,196.368957519531,726.974143981934" />
+    <Link Source="(@1 @2 @3 Member=(Name=FacadeWebGetData OverloadingParameters=[@9,@15,@9]))" Target="@19" Bounds="304.979644775391,795.512390136719,73.2576599121094,547.527648925781" />
+    <Link Source="(@1 @5 @11 Member=(Name=AddRequestDealerToInvestor OverloadingParameters=[(@1 @5 Type=RequestDealer)]))" Target="@19" Bounds="139.879891096324,789.750163822315,198.63652525253,65.737389388518" />
+    <Link Source="(@1 @5 @11 Member=(Name=BeginCalculationSwap @16))" Target="@19" Bounds="330.096832275391,361.720001220703,50.6456298828125,391.365936279297" />
+    <Link Source="(@1 @5 @11 Member=(Name=CloseTradeSymbol @16))" Target="@19" Bounds="343.278411865234,795.512390136719,38.4759826660156,491.567565917969" />
+    <Link Source="(@1 @5 @11 Member=(Name=ExtractCommandServer OverloadingParameters=[@15,@15,@15]))" Target="@19" Bounds="298.647674560547,795.512390136719,79.5896301269531,715.407653808594" />
+    <Link Source="(@1 @5 @11 Member=(Name=FindAndCancelOpenTradeInBinaryCommandList @10))" Target="@19" Bounds="242.447616577148,193.839996337891,137.62614440918,559.299285888672" />
+    <Link Source="(@1 @5 @11 Member=(Name=FixBalanceAccount OverloadingParameters=[@14,@14,@14,@9,@14]))" Target="@19" Bounds="299.666480855679,795.43798076408,77.9755601306804,227.929572446754" />
+    <Link Source="(@1 @5 @11 Member=(Name=OpenTradeSymbol @16))" Target="@19" Bounds="322.527496337891,795.512390136719,55.7098083496094,283.815124511719" />
+    <Link Source="(@1 @5 @11 Member=(Name=ProcessSettingOrder @16))" Target="@19" Bounds="303.906646728516,795.512390136719,74.3306579589844,603.487609863281" />
+    <Link Source="(@1 @5 @11 Member=(Name=SendNotifyToClient OverloadingParameters=[@15,@9,@9]))" Target="@19" Bounds="345.550018310547,795.725891113281,94.9545288085938,267.514099121094" />
+    <Link Source="(@1 @5 @11 Member=ProcessNotifyMessage)" Target="@19" Bounds="303.003326416016,795.512390136719,75.2339782714844,659.447570800781" />
+    <Link Source="(@1 @5 @12 Member=(Name=AddCredit OverloadingParameters=[@14,@9,@15]))" Target="@19" Bounds="393.026229601142,622.850608397508,51.2986734830042,130.694137899582" />
+    <Link Source="(@1 @5 @12 Member=(Name=CheckPrimaryInvestorOnline OverloadingParameters=[@9,(@1 @5 Type=TypeLogin)]))" Target="@19" Bounds="415.190979003906,791.294372558594,193.108642578125,104.065612792969" />
+    <Link Source="(@1 @5 @12 Member=(Name=Deposit OverloadingParameters=[@14,@9,@15]))" Target="@19" Bounds="291.033231832895,794.349147132479,80.1578200991011,117.098406078354" />
+    <Link Source="(@1 @5 @12 Member=(Name=MultipleCloseCommand @13))" Target="@19" Bounds="395.921630859375,794.830322265625,141.109313964844,436.289672851563" />
+    <Link Source="(@1 @5 @12 Member=(Name=NewLogin OverloadingParameters=[@15,@15,@15,(@17 Namespace=System.Net.Sockets Type=Socket)]))" Target="@19" Bounds="344.756439208984,489.7275390625,35.8224182128906,263.368713378906" />
+    <Link Source="(@1 @5 @12 Member=(Name=NewLogin OverloadingParameters=[@15,@15,@9,@15,(@17 Namespace=System.Net.Sockets Type=Socket)]))" Target="@19" Bounds="385.439585974521,566.890608397508,5.26240279073812,186.035491098717" />
+    <Link Source="(@1 @5 @12 Member=(Name=SendCommandToInvestorOnline OverloadingParameters=[@9,(@1 @5 Type=TypeLogin),@15]))" Target="@19" Bounds="298.234558105469,795.512390136719,80.0027465820313,339.775207519531" />
+    <Link Source="(@1 @5 @12 Member=(Name=SubCredit OverloadingParameters=[@14,@9,@15]))" Target="@19" Bounds="245.122724166176,657.607553210833,117.854513119657,98.5418932898044" />
+    <Link Source="(@1 @5 @12 Member=(Name=UpdateInvestor OverloadingParameters=[(@1 @5 @12),@15,@15]))" Target="@19" Bounds="429.031748726102,789.896289382158,141.40529138607,49.5037106178422" />
+    <Link Source="(@1 @5 @12 Member=(Name=UpdateInvestor OverloadingParameters=[(@1 @5 @12)]))" Target="@19" Bounds="390.536035861954,795.613108976571,56.9808155484488,211.666891023429" />
+    <Link Source="(@1 @5 @12 Member=(Name=WithDrawals OverloadingParameters=[@9,@14,@15]))" Target="@19" Bounds="271.586997584806,545.687553210833,103.062672325518,208.169326326499" />
+    <Link Source="(@1 @5 @12 Member=.ctor)" Target="@19" Bounds="385.394066447705,795.919420864645,4.01924799737714,153.588621596618" />
+    <Link Source="(@1 @5 @12 Member=ProcessSetTask)" Target="@19" Bounds="246.769989013672,305.760009765625,133.303771972656,447.379272460938" />
+    <Link Source="(@1 @5 @12 Member=StopOutLevel)" Target="@19" Bounds="422.375019633454,697.48,142.605424947155,60.9074840896945" />
+    <Link Source="(@1 @5 @6 Member=(Name=DeleteOpenTradeByAdmin @10))" Target="@19" Bounds="176.82,761.878894044338,109.476637174086,6.60171096121417" />
+    <Link Source="(@1 @5 @6 Member=(Name=DeleteOpenTradeByCommandID @10))" Target="@19" Bounds="385.925842285156,473.640014648438,130.82861328125,279.294128417969" />
+    <Link Source="(@1 @5 @6 Member=(Name=DeleteOpenTradeByRefCommandID @10))" Target="@19" Bounds="188.328811645508,792.946655273438,175.941787719727,174.460876464844" />
+    <Link Source="(@1 @5 @6 Member=(Name=UpdateOpenTrade OverloadingParameters=[@9,@9,@14,@18,@14,@18,@14,@14,@14,@15,@14,@15,@14,@14]))" Target="@19" Bounds="483.349324379719,782.789282579536,93.5549955424174,7.94530680952221" />
+    <Link Source="(@1 @5 @6 Member=(Name=UpdateOpenTrade OverloadingParameters=[@9,@9,@14,@18,@14,@18,@14,@14,@14,@15,@15,@14]))" Target="@19" Bounds="385.925842285156,417.679992675781,71.1734008789063,335.254150390625" />
+    <Link Source="(@1 @5 @6 Member=(Name=UpdateRuleClosePending OverloadingParameters=[(@1 @5 @6),@14]))" Target="@19" Bounds="330.096832275391,249.800003051758,163.111450195313,503.285934448242" />
+    <Link Source="(@1 @5 Type=Agent Member=(Name=AddRequestDealerToInvestor OverloadingParameters=[(@1 @5 Type=RequestDealer)]))" Target="@19" Bounds="385.925842285156,81.9199981689453,196.368957519531,671.014144897461" />
+    <Link Source="(@1 @5 Type=FutureCommand Member=(Name=AddCommand @13))" Target="@19" Bounds="316.01143119963,433.767553210833,64.5125977891777,319.333170086607" />
+    <Link Source="(@1 @5 Type=FutureCommand Member=(Name=UpdateCommand @13))" Target="@19" Bounds="246.769989013672,193.839996337891,203.138854980469,559.299285888672" />
+    <Link Source="(@1 @5 Type=News Member=(Name=AddNews OverloadingParameters=[@15,@15,@18,@15]))" Target="@19" Bounds="228.957949004956,788.611615195862,81.6140500238901,15.594379531242" />
+    <Link Source="(@1 @5 Type=PriceAlert Member=(Name=SendAlert OverloadingParameters=[(@1 @5 Type=PriceAlert),@9,@9]))" Target="@19" Bounds="225.364740641764,713.567553210833,118.302733334763,45.1461231821462" />
+    <Link Source="(@1 @5 Type=SpotCommand Member=(Name=AddCommand @13))" Target="@19" Bounds="246.769989013672,249.800003051758,133.303771972656,503.339279174805" />
+    <Link Source="(@1 @5 Type=SpotCommand Member=(Name=CloseCommand @13))" Target="@19" Bounds="347.838073730469,795.725891113281,73.6180725097656,323.474060058594" />
+    <Link Source="(@1 @5 Type=SpotCommand Member=(Name=UpdateCommand @13))" Target="@19" Bounds="343.278411865234,795.512390136719,66.6426696777344,379.647644042969" />
+    <Link Source="(@1 Namespace=TradingServer.DBW Type=DBWOnlineCommand Member=(Name=MultipleUpdateOpenTrade OverloadingParameters=[(@7 Namespace=System.Collections.Generic Type=(Name=List GenericParameterCount=1 GenericArguments=[(@1 @5 @6)])),@14,@14]))" Target="@19" Bounds="399.869262695313,585.559997558594,174.142333984375,169.215698242188" />
+    <Link Source="(@1 Namespace=TradingServer.Notifycation Type=Notifycation Member=(Name=SendNotifyToClient OverloadingParameters=[(@1 @5 @12),@15]))" Target="@19" Bounds="402.988727577663,793.430429357025,150.823087309199,157.889570642975" />
+  </Links>
+  <Categories>
+    <Category Id="CodeSchema_Member" Label="Member" CanBeDataDriven="True" DefaultAction="Microsoft.Contains" Icon="CodeSchema_Field" NavigationActionLabel="Members" />
+    <Category Id="CodeSchema_Method" Label="Method" BasedOn="CodeSchema_Member" CanBeDataDriven="True" DefaultAction="Link:Forward:CodeSchema_Calls" Icon="CodeSchema_Method" NavigationActionLabel="Methods" />
+    <Category Id="CodeSchema_Property" Label="Property" BasedOn="CodeSchema_Member" CanBeDataDriven="True" DefaultAction="Microsoft.Contains" Icon="CodeSchema_Property" NavigationActionLabel="Properties" />
+  </Categories>
+  <Properties>
+    <Property Id="Bounds" DataType="System.Windows.Rect" />
+    <Property Id="CanBeDataDriven" Label="CanBeDataDriven" Description="CanBeDataDriven" DataType="System.Boolean" />
+    <Property Id="CodeSchemaProperty_IsConstructor" Label="Is Constructor" Description="Flag to indicate the method is a constructor" DataType="System.Boolean" />
+    <Property Id="CodeSchemaProperty_IsInternal" Label="Is Internal" Description="Flag to indicate the method is 'Internal'" DataType="System.Boolean" />
+    <Property Id="CodeSchemaProperty_IsPrivate" Label="Is Private" Description="Flag to indicate the scope is Private" DataType="System.Boolean" />
+    <Property Id="CodeSchemaProperty_IsPublic" Label="Is Public" Description="Flag to indicate the scope is Public" DataType="System.Boolean" />
+    <Property Id="CodeSchemaProperty_IsStatic" Label="Is Static" Description="Flag to indicate the member is a static member" DataType="System.Boolean" />
+    <Property Id="CommonLabel" DataType="System.String" />
+    <Property Id="DataVirtualized" Label="Data Virtualized" Description="If true, the graph can contain nodes and links that represent data for virtualized nodes/links (i.e. not actually created in the graph)." DataType="System.Boolean" />
+    <Property Id="DefaultAction" Label="DefaultAction" Description="DefaultAction" DataType="System.String" />
+    <Property Id="DelayedChildNodesState" Label="Delayed Child Nodes State" Description="Unspecified if the delayed child nodes state is not specified. NotFetched if the group contains child nodes that are not fetched into the graph yet. Fetched if the group has all its delayed child nodes already fetched." DataType="Microsoft.VisualStudio.GraphModel.DelayedDataState" />
+    <Property Id="Expression" DataType="System.String" />
+    <Property Id="FunctionTypeFlags" Label="FunctionTypeFlags" Description="FunctionTypeFlags" DataType="System.String" />
+    <Property Id="Group" Label="Group" Description="Display the node as a group" DataType="Microsoft.VisualStudio.GraphModel.GraphGroupStyle" />
+    <Property Id="GroupLabel" DataType="System.String" />
+    <Property Id="Icon" Label="Icon" Description="Icon" DataType="System.String" />
+    <Property Id="IsEnabled" DataType="System.Boolean" />
+    <Property Id="Label" Label="Label" Description="Displayable label of an Annotatable object" DataType="System.String" />
+    <Property Id="Language" Label="Language" Description="Language" DataType="System.String" />
+    <Property Id="Layout" DataType="System.String" />
+    <Property Id="NavigationActionLabel" Label="NavigationActionLabel" Description="NavigationActionLabel" DataType="System.String" />
+    <Property Id="SourceLocation" Label="Start Line Number" DataType="Microsoft.VisualStudio.GraphModel.CodeSchema.SourceLocation" />
+    <Property Id="TargetType" DataType="System.Type" />
+    <Property Id="Value" DataType="System.String" />
+    <Property Id="ValueLabel" DataType="System.String" />
+    <Property Id="Visibility" Label="Visibility" Description="Defines whether a node in the graph is visible or not" DataType="System.Windows.Visibility" />
+  </Properties>
+  <QualifiedNames>
+    <Name Id="Assembly" Label="Assembly" ValueType="Uri" />
+    <Name Id="GenericArguments" Label="Generic Arguments" ValueType="Microsoft.VisualStudio.GraphModel.GraphNodeIdCollection" />
+    <Name Id="GenericParameterCount" Label="Generic Parameter Count" ValueType="System.String" />
+    <Name Id="Member" Label="Member" ValueType="System.Object" />
+    <Name Id="Name" Label="Name" ValueType="System.String" />
+    <Name Id="Namespace" Label="Namespace" ValueType="System.String" />
+    <Name Id="OverloadingParameters" Label="Parameter" ValueType="Microsoft.VisualStudio.GraphModel.GraphNodeIdCollection" Formatter="NameValueNoEscape" />
+    <Name Id="Type" Label="Type" ValueType="System.Object" />
+  </QualifiedNames>
+  <IdentifierAliases>
+    <Alias n="1" Uri="Assembly=$(VsSolutionUri)/bin/Debug/TradingServer.dll" />
+    <Alias n="2" Id="Namespace=TradingServer" />
+    <Alias n="3" Id="Type=ClientFacade" />
+    <Alias n="4" Id="OverloadingParameters=[(@1 Namespace=TradingServer.ClientBusiness Type=Command)]" />
+    <Alias n="5" Id="Namespace=TradingServer.Business" />
+    <Alias n="6" Id="Type=OpenTrade" />
+    <Alias n="7" Uri="Assembly=$(FxReferenceAssembliesUri)/.NETFramework/v4.0/mscorlib.dll" />
+    <Alias n="8" Id="Namespace=System" />
+    <Alias n="9" Id="(@7 @8 Type=Int32)" />
+    <Alias n="10" Id="OverloadingParameters=[@9]" />
+    <Alias n="11" Id="Type=Market" />
+    <Alias n="12" Id="Type=Investor" />
+    <Alias n="13" Id="OverloadingParameters=[(@1 @5 @6)]" />
+    <Alias n="14" Id="(@7 @8 Type=Double)" />
+    <Alias n="15" Id="(@7 @8 Type=String)" />
+    <Alias n="16" Id="OverloadingParameters=[@15,(@1 @5 Type=TimeEvent)]" />
+    <Alias n="17" Uri="Assembly=$(FxReferenceAssembliesUri)/.NETFramework/v4.0/System.dll" />
+    <Alias n="18" Id="(@7 @8 Type=DateTime)" />
+    <Alias n="19" Id="(@1 @5 @12 Member=ClientCommandQueue)" />
+  </IdentifierAliases>
+  <Styles>
+    <Style TargetType="Node" GroupLabel="Results" ValueLabel="True">
+      <Condition Expression="HasCategory('QueryResult')" />
+      <Setter Property="Background" Value="#FFBCFFBE" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Assembly" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Assembly')" />
+      <Setter Property="Background" Value="#FF094167" />
+      <Setter Property="Stroke" Value="#FF094167" />
+      <Setter Property="Icon" Value="CodeSchema_Assembly" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Namespace" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Namespace')" />
+      <Setter Property="Background" Value="#FF0E619A" />
+      <Setter Property="Stroke" Value="#FF0E619A" />
+      <Setter Property="Icon" Value="CodeSchema_Namespace" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Interface" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Interface')" />
+      <Setter Property="Background" Value="#FF1382CE" />
+      <Setter Property="Stroke" Value="#FF1382CE" />
+      <Setter Property="Icon" Value="CodeSchema_Interface" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Struct" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Struct')" />
+      <Setter Property="Background" Value="#FF1382CE" />
+      <Setter Property="Stroke" Value="#FF1382CE" />
+      <Setter Property="Icon" Value="CodeSchema_Struct" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Enumeration" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Enum')" />
+      <Setter Property="Background" Value="#FF1382CE" />
+      <Setter Property="Stroke" Value="#FF1382CE" />
+      <Setter Property="Icon" Value="CodeSchema_Enum" />
+      <Setter Property="LayoutSettings" Value="List" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Delegate" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Delegate')" />
+      <Setter Property="Background" Value="#FF1382CE" />
+      <Setter Property="Stroke" Value="#FF1382CE" />
+      <Setter Property="Icon" Value="CodeSchema_Delegate" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Class" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Type')" />
+      <Setter Property="Background" Value="#FF1382CE" />
+      <Setter Property="Stroke" Value="#FF1382CE" />
+      <Setter Property="Icon" Value="CodeSchema_Class" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Property" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Property')" />
+      <Setter Property="Background" Value="#FFE0E0E0" />
+      <Setter Property="Stroke" Value="#FFE0E0E0" />
+      <Setter Property="Icon" Value="CodeSchema_Property" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Method" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Method') Or HasCategory('CodeSchema_CallStackUnresolvedMethod')" />
+      <Setter Property="Background" Value="#FFE0E0E0" />
+      <Setter Property="Stroke" Value="#FFE0E0E0" />
+      <Setter Property="Icon" Value="CodeSchema_Method" />
+      <Setter Property="LayoutSettings" Value="List" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Event" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Event')" />
+      <Setter Property="Background" Value="#FFE0E0E0" />
+      <Setter Property="Stroke" Value="#FFE0E0E0" />
+      <Setter Property="Icon" Value="CodeSchema_Event" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Field" ValueLabel="Has category">
+      <Condition Expression="HasCategory('CodeSchema_Field')" />
+      <Setter Property="Background" Value="#FFE0E0E0" />
+      <Setter Property="Stroke" Value="#FFE0E0E0" />
+      <Setter Property="Icon" Value="CodeSchema_Field" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Out Parameter" ValueLabel="True">
+      <Condition Expression="CodeSchemaProperty_IsOut = 'True'" />
+      <Setter Property="Icon" Value="CodeSchema_OutParameter" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Parameter" ValueLabel="True">
+      <Condition Expression="HasCategory('CodeSchema_Parameter')" />
+      <Setter Property="Icon" Value="CodeSchema_Parameter" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Local Variable" ValueLabel="True">
+      <Condition Expression="HasCategory('CodeSchema_LocalExpression')" />
+      <Setter Property="Icon" Value="CodeSchema_LocalExpression" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Externals" ValueLabel="Has category">
+      <Condition Expression="HasCategory('Externals')" />
+      <Setter Property="Background" Value="#FF424242" />
+      <Setter Property="Stroke" Value="#FF424242" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Inherits From" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="HasCategory('InheritsFrom') And Target.HasCategory('CodeSchema_Class')" />
+      <Setter Property="TargetDecorator" Value="OpenArrow" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Implements" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="HasCategory('Implements') And Target.HasCategory('CodeSchema_Interface')" />
+      <Setter Property="TargetDecorator" Value="OpenArrow" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Field Read" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="Target.HasCategory('CodeSchema_Field') And HasCategory('CodeSchema_FieldRead')" />
+      <Setter Property="StrokeDashArray" Value="2 2" />
+    </Style>
+    <Style TargetType="Link" GroupLabel="Comment Link" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="Source.HasCategory('Comment')" />
+      <Setter Property="Stroke" Value="#FFE5C365" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Cursor Location Changed" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="IsCursorLocation" />
+      <Setter Property="IndicatorWest" Value="WestIndicator" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Disabled Breakpoint Location Changed" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="DisabledBreakpointCount" />
+      <Setter Property="IndicatorWest" Value="WestIndicator" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Enabled Breakpoint Location Changed" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="EnabledBreakpointCount" />
+      <Setter Property="IndicatorWest" Value="WestIndicator" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Instruction Pointer Location Changed" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="IsInstructionPointerLocation" />
+      <Setter Property="IndicatorWest" Value="WestIndicator" />
+    </Style>
+    <Style TargetType="Node" GroupLabel="Current Callstack Changed" ValueLabel="True" Visibility="Hidden">
+      <Condition Expression="IsCurrentCallstackFrame" />
+      <Setter Property="IndicatorWest" Value="WestIndicator" />
+    </Style>
+  </Styles>
+  <Paths>
+    <Path Id="FxReferenceAssembliesUri" Value="file:///C:/Program Files (x86)/Reference Assemblies/Microsoft/Framework" />
+    <Path Id="VsSolutionUri" Value="file:///C:/Users/Public/Documents/Developer/SyFXSystem/TradingServer1502/TradingServer(13-01-2011)" />
+  </Paths>
+</DirectedGraph>

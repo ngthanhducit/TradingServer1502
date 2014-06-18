@@ -1,0 +1,356 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace TradingServer
+{
+    public static partial class ClientFacade
+    {   
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        /// <returns></returns>
+        public static TradingServer.ClientBusiness.DealMessage FacadeMakeBinaryCommand(TradingServer.ClientBusiness.Command objCommand)
+        {
+            ClientBusiness.DealMessage Result = new ClientBusiness.DealMessage();
+            Result.isDeal = false;
+
+            Business.OpenTrade Command = new Business.OpenTrade();
+
+            FillInstanceOpenTrade(objCommand, Command);
+
+            #region CHECK TIME MARKET
+            if (!Business.Market.IsOpen)
+            {
+                string Message = "AddBinary$False,MARKET IS CLOSE," + Command.ID + "," + Command.Investor.InvestorID + "," +
+                            Command.Symbol.Name + "," + Command.Size + "," + false + "," + Command.OpenTime + "," + Command.OpenPrice + "," +
+                            Command.StopLoss + "," + Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," +
+                            Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + "Open" + "," + 1 + "," +
+                            Command.ExpTime + "," + Command.ClientCode + "," + "0000000," + Command.IsHedged + "," + Command.Type.ID + "," +
+                            Command.Margin + ",Open";
+
+                if (Command.Investor.ClientCommandQueue == null)
+                    Command.Investor.ClientCommandQueue = new List<string>();
+                Command.Investor.ClientCommandQueue.Add(Message);
+
+                Result.isDeal = false;
+                Result.Error = "MARKET IS CLOSE";
+                Result.Command = objCommand;
+
+                return Result;
+            }
+            #endregion
+
+            #region CHECK HOLIDAY OF SERVER(COMMENT)
+            //if (Command.Symbol.IsHoliday == 1)
+            //{
+            //    string Message = "AddBinary$False,MARKET IS HOLIDAY," + Command.ID + "," + Command.Investor.InvestorID + "," +
+            //                   Command.Symbol.Name + "," + Command.Size + "," + false + "," + Command.OpenTime + "," + Command.OpenPrice + "," +
+            //                   Command.StopLoss + "," + Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," +
+            //                   Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + "Open" + "," + 1 + "," +
+            //                   Command.ExpTime + "," + Command.ClientCode + "," + "0000000," + Command.IsHedged + "," + Command.Type.ID + "," +
+            //                   Command.Margin + ",Open";
+
+            //    if (Command.Investor.ClientCommandQueue == null)
+            //        Command.Investor.ClientCommandQueue = new List<string>();
+            //    Command.Investor.ClientCommandQueue.Add(Message);
+
+            //    Result.isDeal = false;
+            //    Result.Error = "MARKET IS HOLIDAY";
+            //    Result.Command = objCommand;
+
+            //    return Result;
+            //}
+            #endregion
+
+            if (Command.Investor != null)
+            {
+                #region CHECK INVESTOR ISDISABLE
+                if (Command.Investor.IsDisable)
+                {
+                    //Add Result To Client Command Queue Of Investor
+                    string Message = "AddBinary$False,ACCOUNT IS DISABLED," + Command.ID + "," + Command.Investor.InvestorID + "," +
+                            Command.Symbol.Name + "," + Command.Size + "," + false + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," +
+                                Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," +
+                                "Open" + "," + 1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + "0000000," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Open";
+
+                    if (Command.Investor.ClientBinaryQueue == null)
+                        Command.Investor.ClientBinaryQueue = new List<string>();
+
+                    Command.Investor.ClientBinaryQueue.Add(Message);
+
+                    Result.isDeal = false;
+                    Result.Error = "ACCOUNT IS DISABLED";
+                    Result.Command = objCommand;
+
+                    return Result;
+                }
+                #endregion
+
+                #region CHECK INVESTOR READ ONLY
+                if (Command.Investor.ReadOnly)
+                {
+                    //Add Result To Client Command Queue Of Investor
+                    string Message = "AddBinary$False,TRADE IS DISABLED," + Command.ID + "," + Command.Investor.InvestorID + "," +
+                            Command.Symbol.Name + "," + Command.Size + "," + false + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," +
+                                Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," +
+                                "Open" + "," + 1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + "0000000," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Open";
+
+                    if (Command.Investor.ClientBinaryQueue == null)
+                        Command.Investor.ClientBinaryQueue = new List<string>();
+
+                    Command.Investor.ClientBinaryQueue.Add(Message);
+
+                    Result.isDeal = false;
+                    Result.Error = "TRADE IS DISABLED";
+                    Result.Command = objCommand;
+
+                    return Result;
+                }
+                #endregion
+            }
+
+            //Command.OpenPrice = double.Parse(objCommand.OpenPrice);
+            Command.Size = objCommand.Size;
+            //Command.StopLoss = objCommand.StopLoss;
+            //Command.TakeProfit = objCommand.TakeProfit;
+            Command.ClientCode = objCommand.ClientCode;
+            Command.CloseTime = DateTime.Now;
+            Command.ExpTime = DateTime.Now;
+
+            #region Get Setting IsTrade In Group
+            bool IsTradeGroup = false;
+            if (Business.Market.InvestorGroupList != null)
+            {
+                int count = Business.Market.InvestorGroupList.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (Business.Market.InvestorGroupList[i].InvestorGroupID == Command.Investor.InvestorGroupInstance.InvestorGroupID)
+                    {
+                        if (Business.Market.InvestorGroupList[i].ParameterItems != null)
+                        {
+                            int countParameter = Business.Market.InvestorGroupList[i].ParameterItems.Count;
+                            for (int j = 0; j < countParameter; j++)
+                            {
+                                if (Business.Market.InvestorGroupList[i].ParameterItems[j].Code == "G01")
+                                {
+                                    if (Business.Market.InvestorGroupList[i].ParameterItems[j].BoolValue == 1)
+                                        IsTradeGroup = true;
+
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            #endregion
+
+            if (IsTradeGroup == true)
+            {
+                if (Command.Symbol == null || Command.Investor == null || Command.Type == null)
+                {
+                    Result.isDeal = false;
+
+                    #region Session Close
+                    ///Return false
+                    ///
+                    if (Command.Investor.ClientBinaryQueue == null)
+                        Command.Investor.ClientBinaryQueue = new List<string>();
+
+                    //Add String Command Server To Client
+                    string Message = string.Empty;
+                    Message = "AddBinary$False,Can't Find Symbol, Investor Or Type," + Command.ID + "," + Command.Investor.InvestorID + "," +
+                                Command.Symbol.Name + "," + Command.Size + "," + false + "," + Command.OpenTime + "," +
+                                Command.OpenPrice + "," + Command.StopLoss + "," + Command.TakeProfit + "," +
+                                Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," +
+                                Command.Profit + "," + "Comment," + Command.ID + "," + "BinaryTrading" + "," +
+                                1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + "0000000" + "," +
+                                Command.IsHedged + "," + "-1" + "," + Command.Margin + ",Binary";
+
+                    Command.Investor.ClientBinaryQueue.Add(Message);
+                    #endregion
+                }
+                else
+                {
+                    #region Check Lots Minimum And Maximum In IGroupSecurity And Check IsTrade In IGroupSecurity
+                    bool IsTrade = false;
+                    double Minimum = -1;
+                    double Maximum = -1;
+                    double Step = -1;
+                    bool ResultCheckStepLots = false;
+
+                    #region Get Config IGroupSecurity
+                    if (Command.IGroupSecurity.IGroupSecurityConfig != null)
+                    {
+                        int countIGroupSecurityConfig = Command.IGroupSecurity.IGroupSecurityConfig.Count;
+                        for (int i = 0; i < countIGroupSecurityConfig; i++)
+                        {
+                            if (Command.IGroupSecurity.IGroupSecurityConfig[i].Code == "B01")
+                            {
+                                if (Command.IGroupSecurity.IGroupSecurityConfig[i].BoolValue == 1)
+                                    IsTrade = true;
+                            }
+
+                            if (Command.IGroupSecurity.IGroupSecurityConfig[i].Code == "B11")
+                            {
+                                double.TryParse(Command.IGroupSecurity.IGroupSecurityConfig[i].NumValue, out Minimum);
+                            }
+
+                            if (Command.IGroupSecurity.IGroupSecurityConfig[i].Code == "B12")
+                            {
+                                double.TryParse(Command.IGroupSecurity.IGroupSecurityConfig[i].NumValue, out Maximum);
+                            }
+
+                            if (Command.IGroupSecurity.IGroupSecurityConfig[i].Code == "B13")
+                            {
+                                double.TryParse(Command.IGroupSecurity.IGroupSecurityConfig[i].NumValue, out Step);
+                            }
+                        }
+                    }
+                    #endregion
+
+                    if (IsTrade == true)
+                    {
+                        ResultCheckStepLots = Command.IGroupSecurity.CheckStepLots(Minimum, Maximum, Step, Command.Size);
+
+                        #region If Check Step Lots False Return Client
+                        if (ResultCheckStepLots == false)
+                        {
+                            string Message = "AddBinary$False,WRONG VOLUME," + Command.ID + "," + Command.Investor.InvestorID + "," +
+                                    Command.Symbol.Name + "," + Command.Size + "," + false + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," +
+                                        Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," +
+                                        Command.Type.Name + "," + 1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + "0000000," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Open";
+
+                            if (Command.Investor.ClientBinaryQueue == null)
+                                Command.Investor.ClientBinaryQueue = new List<string>();
+
+                            Command.Investor.ClientBinaryQueue.Add(Message);
+
+                            Result.isDeal = false;
+                            Result.Error = "WRONG VOLUME";
+                            Result.Command = objCommand;
+
+                            return Result;
+                        }
+                        #endregion
+                    }
+                    else
+                    {
+                        #region Check IsTrade  == False
+                        string Message = "AddBinary$False,SYMBOL CANNOT BE TRADED," + Command.ID + "," + Command.Investor.InvestorID + "," +
+                                    Command.Symbol.Name + "," + Command.Size + "," + false + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," +
+                                        Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," +
+                                        Command.Type.Name + "," + 1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + "0000000," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Open";
+
+                        if (Command.Investor.ClientCommandQueue == null)
+                            Command.Investor.ClientCommandQueue = new List<string>();
+
+                        Command.Investor.ClientCommandQueue.Add(Message);
+
+                        Result.isDeal = false;
+                        Result.Error = "SYMBOL CANNOT BE TRADED";
+                        Result.Command = objCommand;
+
+                        return Result;
+                        #endregion
+                    }
+                    #endregion
+
+                    Command.Symbol.MarketAreaRef.AddCommand(Command);
+                    Result.Command = objCommand;
+                    Result.isDeal = true;
+                }
+            }
+            else
+            {
+                if (Command.Investor != null)
+                {
+                    //Add Result To Client Command Queue Of Investor
+                    string Message = "AddBinary$False,ACTION NOT ALLOWED," + Result + "," + Command.Investor.InvestorID + "," +
+                            Command.Symbol.Name + "," + Command.Size + "," + false + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," +
+                                Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," +
+                                Command.Type.Name + "," + 1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + "0000000," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Open";
+
+                    if (Command.Investor.ClientCommandQueue == null)
+                        Command.Investor.ClientCommandQueue = new List<string>();
+
+                    Command.Investor.ClientCommandQueue.Add(Message);
+                }
+            }
+
+            return Result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="InvestorID"></param>
+        /// <returns></returns>
+        public static List<TradingServer.ClientBusiness.Command> FacadeGetBinaryCommandByInvestorID(int InvestorID, int MarketArea)
+        {
+            List<ClientBusiness.Command> Result = new List<ClientBusiness.Command>();
+            List<Business.OpenTrade> tempResult = new List<Business.OpenTrade>();
+            if (Business.Market.InvestorList != null)
+            {
+                int count = Business.Market.InvestorList.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (Business.Market.InvestorList[i].InvestorID == InvestorID)
+                    {
+                        if (Business.Market.InvestorList[i].BinaryCommandList != null)
+                        {
+                            int countCommand = Business.Market.InvestorList[i].BinaryCommandList.Count;
+                            for (int j = 0; j < countCommand; j++)
+                            {
+                                tempResult.Add(Business.Market.InvestorList[i].BinaryCommandList[j]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (tempResult != null)
+            {
+                int count = tempResult.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    TradingServer.ClientBusiness.Command newCommand = new ClientBusiness.Command();
+                    newCommand.ClosePrice = tempResult[i].ClosePrice;
+                    newCommand.CommandID = tempResult[i].ID;
+                    newCommand.CommandType = tempResult[i].Type.ID.ToString();
+                    newCommand.Commission = tempResult[i].Commission;
+                    newCommand.InvestorID = tempResult[i].Investor.InvestorID;
+                    switch (tempResult[i].Type.ID)
+                    {
+                        case 3:
+                            newCommand.IsBuy = true;
+                            break;
+
+                        case 4:
+                            newCommand.IsBuy = false;
+                            break;
+                    }
+
+                    newCommand.OpenPrice = tempResult[i].OpenPrice.ToString();
+                    newCommand.Size = int.Parse(tempResult[i].Size.ToString());
+                    newCommand.StopLoss = tempResult[i].StopLoss;
+                    newCommand.Swap = tempResult[i].Swap;
+                    newCommand.Symbol = tempResult[i].Symbol.Name;
+                    newCommand.TakeProfit = tempResult[i].TakeProfit;
+                    newCommand.Time = tempResult[i].OpenTime.ToString();
+                    newCommand.TimeExpiry = tempResult[i].ExpTime;
+                    newCommand.ClientCode = tempResult[i].ClientCode;
+                    newCommand.CommandCode = tempResult[i].CommandCode;
+
+                    Result.Add(newCommand);
+                }
+            }
+
+            return Result;
+        }        
+    }
+}

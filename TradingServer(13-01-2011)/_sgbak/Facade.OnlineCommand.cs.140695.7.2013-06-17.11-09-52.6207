@@ -1,0 +1,338 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace TradingServer
+{
+    public static partial class Facade
+    {        
+        /// <summary>
+        /// FACADE GET ALL OPEN TRADE IN DATABASE
+        /// </summary>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetAllOpenTrade()
+        {
+            return Facade.OpenTradeInstance.GetAllOnlineCommand();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeInitOpenTrade()
+        {
+            return Facade.OpenTradeInstance.InitOnlineCommand();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void FacadeReCalculationAccount()
+        {
+            Facade.OpenTradeInstance.ReCalculationAccount();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="From"></param>
+        /// <param name="To"></param>
+        /// <param name="GroupList"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetOpenTradeByGroupList(int From, int To, List<int> GroupList)
+        {
+            return Facade.OpenTradeInstance.GetOnlineCommandByGroupList(From, To, GroupList);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="listInvestorCode"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetOpenTradeByListInvestorCode(List<string> listInvestorCode)
+        {
+            return Facade.OpenTradeInstance.GetOnlineCommandByListInvestorCode(listInvestorCode);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="listInvestorCode"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetOpenTradeByListInvestorID(List<int> listInvestorID)
+        {
+            return Facade.OpenTradeInstance.GetOnlineCommandByListInvestorID(listInvestorID);
+        }
+
+        /// <summary>
+        /// FACADE GET ALL ONLINE COMMAND IN CLASS MARKET WITH MARKETAREA IS SPOT COMMAND
+        /// </summary>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetOnlineCommand(int From, int To)
+        {
+            return Facade.OpenTradeInstance.GetOnlineCommand(From, To);
+        }
+
+        /// <summary>
+        /// GET OPEN TRADE BY SYMBOL ID IN DATABASE
+        /// </summary>
+        /// <param name="SymbolID"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetOpenTradeBySymbolID(int SymbolID)
+        {
+            return Facade.OpenTradeInstance.GetOnlineCommandBySymbolID(SymbolID);
+        }
+
+        /// <summary>
+        /// FACADE GET OPEN TRADE BY INVESTOR ID IN DATABASE
+        /// </summary>
+        /// <param name="InvestorID"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetOpenTradeByInvestorID(int InvestorID)
+        {
+            return Facade.OpenTradeInstance.GetOnlineCommandByInvestorID(InvestorID);
+        }
+
+        /// <summary>
+        /// FACADE GET ONLINE COMMAND BY INVESTOR ID OF CLASS MARKET
+        /// </summary>
+        /// <param name="InvestorID"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetOnlineCommandByInvestorID(int InvestorID)
+        {
+            return Facade.OpenTradeInstance.GetOpenTradeByInvestorID(InvestorID);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="investorID"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetOpenTradeByInvestorWithStartEnd(int investorID, int start, int end)
+        {
+            return Facade.OpenTradeInstance.GetOpenTradeByInvestorWithStartEnd(investorID, start, end);
+        }
+
+        /// <summary>
+        /// FACADE GET OPEN TRADE BY COMMAND TYPE ID IN DATABASE
+        /// </summary>
+        /// <param name="CommandTypeID"></param>
+        /// <returns></returns>
+        public static List<Business.OpenTrade> FacadeGetOpenTradeByCommandType(int CommandTypeID)
+        {
+            return Facade.OpenTradeInstance.GetOnlineCommandByCommandTypeID(CommandTypeID);
+        }
+
+        /// <summary>
+        /// FACADE GET OPEN TRADE BY OPEN TRADE ID IN DATABASE
+        /// </summary>
+        /// <param name="ID"></param>
+        /// <returns></returns>
+        public static Business.OpenTrade FacadeGetOpenTradeByID(int OpenTradeID)
+        {
+            return Facade.OpenTradeInstance.GetOnlineCommandByID(OpenTradeID);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="commandID"></param>
+        /// <returns></returns>
+        public static Business.OpenTrade FacadeGetCommandByID(int commandID)
+        {
+            return Facade.OpenTradeInstance.GetOnlineCommandByCommandID(commandID);
+        }
+
+        /// <summary>
+        /// FACADE ADD NEW OPEN TRADE TO DATABASE
+        /// </summary>
+        /// <param name="objOpenTrade"></param>
+        /// <returns></returns>
+        public static int FacadeAddNewOpenTrade(Business.OpenTrade objOpenTrade)
+        {
+            return Facade.OpenTradeInstance.AddNewOnlineCommand(objOpenTrade);
+        }
+
+        /// <summary>
+        /// FACADE UPDATE OPEN TRADE IN DATABASE
+        /// </summary>
+        /// <param name="objOpenTrade"></param>
+        public static bool FacadeUpdateOpenTrade(Business.OpenTrade objOpenTrade)
+        {
+            return Facade.OpenTradeInstance.UpdateOnlineCommand(objOpenTrade);
+        }
+
+        /// <summary>
+        /// FACADE UPDATE SWAP ONLINE COMMAND IN DATABASE
+        /// </summary>
+        /// <param name="OnlineCommandID"></param>
+        /// <param name="Swap"></param>
+        /// <returns></returns>
+        public static bool FacadeUpdateSwapOnlineCommand(int OnlineCommandID, double Swap)
+        {
+            return Facade.OpenTradeInstance.UpdateSwapOnlineCommand(OnlineCommandID, Swap);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="openPositionID"></param>
+        /// <param name="totalSwap"></param>
+        /// <returns></returns>
+        public static bool FacadeUpdateTotalSwapOnlineCommand(int openPositionID, double totalSwap)
+        {
+            return Facade.OpenTradeInstance.UpdateTotalSwapOpenTrade(openPositionID, totalSwap);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="InvestorID"></param>
+        /// <param name="CommandID"></param>
+        /// <param name="Commission"></param>
+        /// <param name="ExpTime"></param>
+        /// <param name="OpenPrice"></param>
+        /// <param name="OpenTime"></param>
+        /// <param name="StopLoss"></param>
+        /// <param name="Swap"></param>
+        /// <param name="TakeProfit"></param>
+        /// <param name="SymbolName"></param>
+        /// <returns></returns>
+        public static bool FacadeUpdateOnlineCommand(int InvestorID, int CommandID, double Commission, DateTime ExpTime, double OpenPrice, DateTime OpenTime,
+            double StopLoss, double Swap, double TakeProfit, string SymbolName, double taxes, string comment, double agentCommission, double size)
+        {
+            return Facade.OpenTradeInstance.UpdateOpenTrade(InvestorID, CommandID, Commission, ExpTime, OpenPrice, OpenTime, StopLoss, Swap, TakeProfit, SymbolName, taxes, comment, agentCommission, size);
+        }
+
+        /// <summary>
+        /// FACADE DELETE OPEN TRADE WITH OPEN TRADE ID IN DATABASE
+        /// </summary>
+        /// <param name="OpenTradeID"></param>
+        /// <returns></returns>
+        public static bool FacadeDeleteOpenTradeByID(int OpenTradeID)
+        {
+            return Facade.OpenTradeInstance.DeleteOnlineCommandByID(OpenTradeID);
+        }
+
+        /// <summary>
+        /// FACADE MANAGER DELETE OPEN TRADE BY COMMAND ID
+        /// </summary>
+        /// <param name="CommandID"></param>
+        /// <returns></returns>
+        public static bool FacadeDeleteOpenTradeByManager(int CommandID)
+        {
+            return Facade.OpenTradeInstance.DeleteOpenTradeByCommandID(CommandID);
+        }
+
+        /// <summary>
+        /// FACADE MANAGER DELETE OPEN TRADE BY REFERENCE COMMAND ID
+        /// </summary>
+        /// <param name="refCommandID"></param>
+        /// <returns></returns>
+        public static bool FacadeDeleteOpenTradeByManagerWithRefID(int refCommandID)
+        {
+            return Facade.OpenTradeInstance.DeleteOpenTradeByRefCommandID(refCommandID);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="commandID"></param>
+        /// <returns></returns>
+        public static bool FacadeDeleteOpenTradeByAdmin(int commandID)
+        {
+            return Facade.OpenTradeInstance.DeleteOpenTradeByAdmin(commandID);
+        }
+
+        /// <summary>
+        /// FACADE DELETE OPEN TRADE BY COMMAND TYPE ID IN DATABASE
+        /// </summary>
+        /// <param name="CommandTypeID"></param>
+        /// <returns></returns>
+        public static bool FacadeDeleteOpenTradeByCommandType(int CommandTypeID)
+        {
+            return Facade.OpenTradeInstance.DeleteOnlineCommandByCommandTypeID(CommandTypeID);
+        }
+
+        /// <summary>
+        /// FACADE DELETE OPEN TRADE BY INVESTOR ID IN DATABASE
+        /// </summary>
+        /// <param name="InvestorID"></param>
+        /// <returns></returns>
+        public static bool FacadeDeleteOpenTradeByInvestorID(int InvestorID)
+        {
+            return Facade.OpenTradeInstance.DeleteOnlineComamndByInvestorID(InvestorID);
+        }
+
+        /// <summary>
+        /// FACADE DELETE OPEN TRADE BY SYMBOL ID IN DATABASE
+        /// </summary>
+        /// <param name="SymbolID"></param>
+        /// <returns></returns>
+        public static bool FacadeDeleteOpenTradeBySymbolID(int SymbolID)
+        {
+            return Facade.OpenTradeInstance.DeleteOnlineCommandBySymbolID(SymbolID);
+        }
+
+        /// <summary>
+        /// FACADE UPDATE ONLINE COMMAND IN DATABASE
+        /// </summary>
+        /// <param name="TakeProfit"></param>
+        /// <param name="StopLoss"></param>
+        /// <param name="OnlineCommandID"></param>
+        /// <returns></returns>
+        public static bool FacadeUpdateOnlineCommandWithTakeProfit(double TakeProfit, double StopLoss, int OnlineCommandID, string comment, double openPrices)
+        {
+            return Facade.OpenTradeInstance.UpdateCommandWithTakeProfit(TakeProfit, StopLoss, OnlineCommandID, comment, openPrices);
+        }
+
+        /// <summary>
+        /// FACADE UPDATE COMMAND CODE OF COMMAND IN DATABASE
+        /// </summary>
+        /// <param name="OpenTradeID"></param>
+        /// <param name="CommandCode"></param>
+        /// <returns></returns>
+        public static bool FacadeUpdateCommandCode(int OpenTradeID, string CommandCode)
+        {
+            return Facade.OpenTradeInstance.UpdateCommandCode(OpenTradeID, CommandCode);
+        }
+
+        /// <summary>
+        /// UPDATE S/L T/P OPEN PRICE
+        /// </summary>
+        /// <param name="commandID"></param>
+        /// <param name="stopLoss"></param>
+        /// <param name="takeProfit"></param>
+        /// <param name="openPrices">OPEN PRICE != 0</param>
+        /// <returns></returns>
+        public static bool FacadeUpdateCommandExecutor(int commandID, double stopLoss, double takeProfit, double openPrices)
+        {
+            return Facade.OpenTradeInstance.MultiUpdateCommandExecutor(stopLoss, takeProfit, openPrices, commandID);
+        }
+
+        /// <summary>
+        /// UPDATE S/L T/P OPENPRICE
+        /// </summary>
+        /// <param name="commandID"></param>
+        /// <param name="stopLoss"></param>
+        /// <param name="takeProfit"></param>
+        /// <param name="openPrices">OPEN PRICE != 0</param>
+        /// <returns></returns>
+        public static bool FacadeUpdateCommandSymbolList(int commandID, double stopLoss, double takeProfit, double openPrices)
+        {
+            return Facade.OpenTradeInstance.MultiUpdateCommandSymbolList(stopLoss, takeProfit, openPrices, commandID);
+        }      
+  
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static int FacadeCountOnlineCommand()
+        {
+            return Facade.OpenTradeInstance.CountTotalCommand();
+        }
+    }
+}

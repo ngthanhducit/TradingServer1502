@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace TradingServer.Business
+{
+    public class Tick
+    {
+        public int ID { get; set; }
+        public double Ask { get; set; }
+        public double Bid { get; set; }
+        public bool IsUpdate { get; set; }
+        public string SymbolName { get; set; }
+        public DateTime TickTime { get; set; }
+        public DateTime TimeCurrent { get; set; }
+        public string Status { get; set; }
+        public int SymbolID { get; set; }
+        public double HighInDay { get; set; }
+        public double LowInDay { get; set; }
+        public double HighAsk { get; set; }
+        public double LowAsk { get; set; }
+        public bool IsManager { get; set; }
+    }
+}

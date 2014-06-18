@@ -1,0 +1,250 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace TradingServer.DBW
+{
+    internal class DBWMarketConfig
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        internal List<Business.ParameterItem> GetAllMarketConfig()
+        {
+            List<Business.ParameterItem> Result = new List<Business.ParameterItem>();
+
+            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(DBConnection.DBConnection.Connection);
+            DSTableAdapters.MarketConfigTableAdapter adap = new DSTableAdapters.MarketConfigTableAdapter();
+            DS.MarketConfigDataTable tbMarketConfig = new DS.MarketConfigDataTable();
+            try
+            {
+                conn.Open();
+                adap.Connection = conn;
+                tbMarketConfig = adap.GetData();
+                if (tbMarketConfig != null)
+                {
+                    int count = tbMarketConfig.Count;
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (tbMarketConfig[i].Code == "C36")
+                        {
+                            if (tbMarketConfig[i].BoolValue == 1)
+                                Business.Market.IsConnectMT4 = true;
+                            else
+                                Business.Market.IsConnectMT4 = false;
+                        }
+                        Business.ParameterItem newParameterItem = new Business.ParameterItem();
+                        newParameterItem.ParameterItemID = tbMarketConfig[i].MarketConfigID;
+                        newParameterItem.Name = tbMarketConfig[i].Name;
+                        newParameterItem.Code = tbMarketConfig[i].Code;
+                        newParameterItem.BoolValue = tbMarketConfig[i].BoolValue;
+                        newParameterItem.StringValue = tbMarketConfig[i].StringValue;
+                        newParameterItem.NumValue = tbMarketConfig[i].NumValue;
+                        newParameterItem.DateValue = tbMarketConfig[i].DateValue;
+
+                        Result.Add(newParameterItem);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+            finally
+            {
+                adap.Connection.Close();
+                conn.Close();
+            }
+
+            return Result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="MarketConfigID"></param>
+        /// <returns></returns>
+        internal Business.ParameterItem GetMarketConfigByMarketConfigID(int MarketConfigID)
+        {
+            Business.ParameterItem Result = new Business.ParameterItem();
+            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(DBConnection.DBConnection.Connection);
+            DSTableAdapters.MarketConfigTableAdapter adap = new DSTableAdapters.MarketConfigTableAdapter();
+            DS.MarketConfigDataTable tbMarketConfig = new DS.MarketConfigDataTable();
+
+            try
+            {
+                conn.Open();
+                adap.Connection = conn;
+                tbMarketConfig = adap.GetMarketConfigByMarketConfigID(MarketConfigID);
+                if (tbMarketConfig != null)
+                {
+                    Result.ParameterItemID = tbMarketConfig[0].MarketConfigID;
+                    Result.Name = tbMarketConfig[0].Name;
+                    Result.Code = tbMarketConfig[0].Code;
+                    Result.BoolValue = tbMarketConfig[0].BoolValue;
+                    Result.StringValue = tbMarketConfig[0].StringValue;
+                    Result.NumValue = tbMarketConfig[0].NumValue;
+                    Result.DateValue = tbMarketConfig[0].DateValue;
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+            finally
+            {
+                adap.Connection.Close();
+                conn.Close();
+            }
+
+            return Result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="CollectionValue"></param>
+        /// <param name="Name"></param>
+        /// <param name="Code"></param>
+        /// <param name="BoolValue"></param>
+        /// <param name="StringValue"></param>
+        /// <param name="NumValue"></param>
+        /// <param name="DateValue"></param>
+        /// <returns></returns>
+        internal int AddNewMarketConfig(int CollectionValue, string Name, string Code, int BoolValue,
+                                            string StringValue, string NumValue, DateTime DateValue)
+        {
+            int Result = -1;
+            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(DBConnection.DBConnection.Connection);
+            DSTableAdapters.MarketConfigTableAdapter adap = new DSTableAdapters.MarketConfigTableAdapter();
+            try
+            {
+                conn.Open();
+                adap.Connection = conn;
+
+                if (CollectionValue > 0)
+                {
+                    Result = int.Parse(adap.AddNewMarketConfig(CollectionValue, Name, Code, NumValue, DateValue, BoolValue, StringValue).ToString());
+                }
+                else
+                {
+                    Result = int.Parse(adap.AddNewMarketConfig(null, Name, Code, NumValue, DateValue, BoolValue, StringValue).ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                return -1;
+            }
+            finally
+            {
+                adap.Connection.Close();
+                conn.Close();
+            }
+
+            return Result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="MarketConfigID"></param>
+        /// <param name="CollectionValue"></param>
+        /// <param name="Name"></param>
+        /// <param name="Code"></param>
+        /// <param name="BoolValue"></param>
+        /// <param name="StringValue"></param>
+        /// <param name="NumValue"></param>
+        /// <param name="DateValue"></param>
+        /// <returns></returns>
+        internal bool UpdateMarketConfig(int MarketConfigID, int CollectionValue, string Name,
+                                            string Code, int BoolValue, string StringValue, string NumValue, DateTime DateValue)
+        {
+            bool Result = false;
+            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(DBConnection.DBConnection.Connection);
+            DSTableAdapters.MarketConfigTableAdapter adap = new DSTableAdapters.MarketConfigTableAdapter();
+
+            try
+            {
+                conn.Open();
+                adap.Connection = conn;
+                int Record = adap.UpdateMarketConfig(null, Name, Code, StringValue, NumValue, DateValue, BoolValue, MarketConfigID);
+                if(Record>0)
+                    Result = true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            finally
+            {
+                adap.Connection.Close();
+                conn.Close();
+            }
+
+            return Result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="marketConfigID"></param>
+        /// <returns></returns>
+        internal bool DeleteMarketConfig(int marketConfigID)
+        {
+            bool result = false;
+            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(DBConnection.DBConnection.Connection);
+            DSTableAdapters.MarketConfigTableAdapter adap = new DSTableAdapters.MarketConfigTableAdapter();
+
+            try
+            {
+                conn.Open();
+                adap.Connection = conn;
+                int delete = adap.DeleteMarketConfig(marketConfigID);
+                if (delete > 0)
+                    result = true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            finally
+            {
+                adap.Connection.Close();
+                conn.Close();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        internal int CountMarketConfig()
+        {
+            int? result = -1;
+            System.Data.SqlClient.SqlConnection conn = new System.Data.SqlClient.SqlConnection(DBConnection.DBConnection.Connection);
+            DSTableAdapters.MarketConfigTableAdapter adap = new DSTableAdapters.MarketConfigTableAdapter();            
+
+            try
+            {
+                conn.Open();
+                adap.Connection = conn;
+                result = adap.CountMarketConfig();
+            }
+            catch (Exception ex)
+            {
+                return -1;
+            }
+            finally
+            {
+                adap.Connection.Close();
+                conn.Close();
+            }
+
+            return result.Value;
+        }
+    }
+}

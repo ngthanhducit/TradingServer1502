@@ -1,0 +1,66 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.ComponentModel;
+
+namespace TradingServer.Business
+{
+    public partial class OpenTrade
+    {
+        public double ClosePrice { get; set; }
+        public DateTime CloseTime { get; set; }        
+        public DateTime ExpTime { get; set; }
+        public int ID { get; set; }
+        public Investor Investor { get; set; }
+        public Business.IGroupSecurity IGroupSecurity { get; set; }
+        public int ManagerID { get; set; }
+        public double OpenPrice { get; set; }
+        public DateTime OpenTime { get; set; }
+        public double Size { get; set; }
+        public double StopLoss { get; set; }
+        public Symbol Symbol { get; set; }
+        public double TakeProfit { get; set; }
+        public int NumberUpdate { get; set; }
+        public TradeType Type { get; set; }
+        public string ClientCode { get; set; }
+        // true is Closed, flase is Open
+        public bool IsClose { get; set; }
+        public double Profit { get; set; }
+        public double Swap { get; set; }        
+        public double Commission { get; set; }
+        public double AgentCommission { get; set; }
+        public string CommandCode { get; set; }
+        public string Comment { get; set; }
+        public double Margin { get; set; }
+        public bool IsHedged { get; set; }
+        public double Taxes { get; set; }        
+        public double SpreaDifferenceInOpenTrade { get; set; }
+        public bool IsServer { get; set; }
+        public bool IsProcess { get; set; }
+        public bool InProcessClose { get; set; }
+        public bool IsProcessStatus { get; set; }
+        public bool IsMultiClose { get; set; }
+        public bool IsMultiUpdate { get; set; }
+        public double FreezeMargin { get; set; }
+        public double TotalSwap { get; set; }
+        public bool IsReOpen { get; set; }
+        public bool IsReNewOpen { get; set; }
+        public double MaxDev { get; set; }
+        public double BidServer { get; set; }
+        public double AskServer { get; set; }
+        public string AgentRefConfig { get; set; }
+        public string DealerCode { get; set; }
+        public bool IsStopLossAndTakeProfit { get; set; }
+        public bool IsActivePending { get; set; }
+
+        /// <summary>
+        /// COMMAND ID OF MT4 SYSTEM REFERENCE TO ET5
+        /// </summary>
+        public int RefCommandID { get; set; }
+
+        public Business.OpenTrade InsExe { get; set; }
+        public Business.OpenTrade InsOpenTradeSymbol { get; set; }
+        public Business.OpenTrade InsOpenTradeInvestor { get; set; }
+    }
+}

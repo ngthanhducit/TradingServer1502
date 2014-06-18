@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="DefaultWCF" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/Imports">
+      <xsd:import schemaLocation="http://agentwcf.sycomore.vn/DefaultWCF.svc?xsd=xsd0" namespace="http://tempuri.org/" />
+      <xsd:import schemaLocation="http://agentwcf.sycomore.vn/DefaultWCF.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://agentwcf.sycomore.vn/DefaultWCF.svc?xsd=xsd2" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="IDefaultWCF_DefaultPort_InputMessage">
+    <wsdl:part name="parameters" element="tns:DefaultPort" />
+  </wsdl:message>
+  <wsdl:message name="IDefaultWCF_DefaultPort_OutputMessage">
+    <wsdl:part name="parameters" element="tns:DefaultPortResponse" />
+  </wsdl:message>
+  <wsdl:message name="IDefaultWCF_StringDefaultPort_InputMessage">
+    <wsdl:part name="parameters" element="tns:StringDefaultPort" />
+  </wsdl:message>
+  <wsdl:message name="IDefaultWCF_StringDefaultPort_OutputMessage">
+    <wsdl:part name="parameters" element="tns:StringDefaultPortResponse" />
+  </wsdl:message>
+  <wsdl:message name="IDefaultWCF_ListStringDefaultPort_InputMessage">
+    <wsdl:part name="parameters" element="tns:ListStringDefaultPort" />
+  </wsdl:message>
+  <wsdl:message name="IDefaultWCF_ListStringDefaultPort_OutputMessage">
+    <wsdl:part name="parameters" element="tns:ListStringDefaultPortResponse" />
+  </wsdl:message>
+  <wsdl:portType name="IDefaultWCF">
+    <wsdl:operation name="DefaultPort">
+      <wsdl:input wsaw:Action="http://tempuri.org/IDefaultWCF/DefaultPort" message="tns:IDefaultWCF_DefaultPort_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IDefaultWCF/DefaultPortResponse" message="tns:IDefaultWCF_DefaultPort_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="StringDefaultPort">
+      <wsdl:input wsaw:Action="http://tempuri.org/IDefaultWCF/StringDefaultPort" message="tns:IDefaultWCF_StringDefaultPort_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IDefaultWCF/StringDefaultPortResponse" message="tns:IDefaultWCF_StringDefaultPort_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="ListStringDefaultPort">
+      <wsdl:input wsaw:Action="http://tempuri.org/IDefaultWCF/ListStringDefaultPort" message="tns:IDefaultWCF_ListStringDefaultPort_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IDefaultWCF/ListStringDefaultPortResponse" message="tns:IDefaultWCF_ListStringDefaultPort_OutputMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_IDefaultWCF" type="tns:IDefaultWCF">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="DefaultPort">
+      <soap:operation soapAction="http://tempuri.org/IDefaultWCF/DefaultPort" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="StringDefaultPort">
+      <soap:operation soapAction="http://tempuri.org/IDefaultWCF/StringDefaultPort" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ListStringDefaultPort">
+      <soap:operation soapAction="http://tempuri.org/IDefaultWCF/ListStringDefaultPort" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="DefaultWCF">
+    <wsdl:port name="BasicHttpBinding_IDefaultWCF" binding="tns:BasicHttpBinding_IDefaultWCF">
+      <soap:address location="http://agentwcf.sycomore.vn/DefaultWCF.svc" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="TradingServer.Business.Calculator">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAEgCACAAAABAAARAAAAIAEAACAJAABAABAAAI=</HashCode>
+      <FileName>Business\Calculator.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TradingServer.Business.CalculatorFacade">
+    <Position X="2.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAgAIBXAAgAAACAAABAAAAAACAQAAUAAAAAIAAAA=</HashCode>
+      <FileName>Business\CalculatorFacade.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TradingServer.Business.Investor">
+    <Position X="8.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAYAAKEAUAkACBAAggAAACAESAAAEAIACACAAEAAA=</HashCode>
+      <FileName>Business\Investor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TradingServer.Business.InvestorProfile">
+    <Position X="6" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EEAAAAAUACAACAAIAAAAAAAAAAIAAAEDAAAAJAAAAAA=</HashCode>
+      <FileName>Business\InvestorProfile.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TradingServer.Business.InvestorLog">
+    <Position X="6" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAEAAAUAAAAAAAAAAAAAAAAIAAAAAAAAAAAIAAAAQA=</HashCode>
+      <FileName>Business\InvestorLog.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TradingServer.Business.Market">
+    <Position X="10.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAIAAARQAAQAFAMgCggAADAMAAgABgAQQAABMABDAA=</HashCode>
+      <FileName>Business\Market.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TradingServer.Business.OpenTrade">
+    <Position X="12.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIACAAgAAAIgAAIAgAAAAACAAAFAAAAAQggIQAACAA=</HashCode>
+      <FileName>Business\OpenTrade.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="TradingServer.Business.ParameterItem">
+    <Position X="12.75" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAghAAAAAAIAAAAAAAAgAAQAAAAIAAAgABAAAAAQAAA=</HashCode>
+      <FileName>Business\ParameterItem.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Delegate Name="TradingServer.Business.TaskDelegate" Collapsed="true">
+    <Position X="4" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Business\CalculatorFacade.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="TradingServer.Business.TaskComplete" Collapsed="true">
+    <Position X="4" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Business\CalculatorFacade.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

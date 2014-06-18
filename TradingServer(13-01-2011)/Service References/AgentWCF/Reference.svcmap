@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="5ab9c174-cf6e-405f-a878-c2b859feed85" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://agentwcf.sycomore.vn/Defaultwcf.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="DefaultWCF.xsd" MetadataType="Schema" ID="3858a00c-2fe7-471b-81ed-691186182a00" SourceId="1" SourceUrl="http://agentwcf.sycomore.vn/DefaultWCF.svc?xsd=xsd1" />
+    <MetadataFile FileName="DefaultWCF.disco" MetadataType="Disco" ID="e63f7e91-fa44-431c-ada6-1be79a735a75" SourceId="1" SourceUrl="http://agentwcf.sycomore.vn/DefaultWCF.svc?disco" />
+    <MetadataFile FileName="DefaultWCF1.xsd" MetadataType="Schema" ID="44df2541-ba8a-481f-b3a4-086d71fad498" SourceId="1" SourceUrl="http://agentwcf.sycomore.vn/DefaultWCF.svc?xsd=xsd0" />
+    <MetadataFile FileName="DefaultWCF.wsdl" MetadataType="Wsdl" ID="a1ebeabe-be6d-444a-adaa-2d31b4e5e51a" SourceId="1" SourceUrl="http://agentwcf.sycomore.vn/DefaultWCF.svc?wsdl" />
+    <MetadataFile FileName="DefaultWCF2.xsd" MetadataType="Schema" ID="4fff5f1b-c970-4206-af2e-66f811dd0474" SourceId="1" SourceUrl="http://agentwcf.sycomore.vn/DefaultWCF.svc?xsd=xsd2" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

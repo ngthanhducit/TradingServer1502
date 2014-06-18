@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://tempuri.org/" elementFormDefault="qualified" targetNamespace="http://tempuri.org/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://tradingwcf.sycomore.co.uk/PriceQuotes.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/TradingServer.Business" />
+  <xs:element name="TopPriceByTimeFrame">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="TimeFrame" type="xs:int" />
+        <xs:element minOccurs="0" name="Num" type="xs:int" />
+        <xs:element minOccurs="0" name="Symbol" nillable="true" type="xs:string" />
+        <xs:element minOccurs="0" name="Time" type="xs:dateTime" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="TopPriceByTimeFrameResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="TopPriceByTimeFrameResult" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetPriceByDateTime">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="Time" type="xs:dateTime" />
+        <xs:element minOccurs="0" name="TimeFrame" type="xs:int" />
+        <xs:element minOccurs="0" name="Symbol" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetPriceByDateTimeResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="GetPriceByDateTimeResult" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="OnlineCandles">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="TimeFrame" type="xs:int" />
+        <xs:element minOccurs="0" name="Symbol" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="OnlineCandlesResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="OnlineCandlesResult" nillable="true" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetTickOnline">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="GetTickOnlineResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q1="http://schemas.datacontract.org/2004/07/TradingServer.Business" minOccurs="0" name="GetTickOnlineResult" nillable="true" type="q1:ArrayOfTick" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CheckQueueTick">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="Number" type="xs:int" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CheckQueueTickResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element xmlns:q2="http://schemas.datacontract.org/2004/07/TradingServer.Business" minOccurs="0" name="CheckQueueTickResult" nillable="true" type="q2:ArrayOfTick" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CountQueueTick">
+    <xs:complexType>
+      <xs:sequence />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CountQueueTickResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="CountQueueTickResult" type="xs:int" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

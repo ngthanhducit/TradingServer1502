@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="8bed43e3-0dc4-46f2-99f6-b29301ff728d" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>true</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://testbroker.sycomore.vn/BrokerWCF.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="BrokerWCF.wsdl" MetadataType="Wsdl" ID="ccb3bc16-8d7a-4f70-943e-d1ba4b3c3512" SourceId="1" SourceUrl="http://testbroker.sycomore.vn/BrokerWCF.svc?wsdl" />
+    <MetadataFile FileName="BrokerWCF.xsd" MetadataType="Schema" ID="1b730203-4634-4457-a04f-59dbbb8c6847" SourceId="1" SourceUrl="http://testbroker.sycomore.vn/BrokerWCF.svc?xsd=xsd1" />
+    <MetadataFile FileName="BrokerWCF1.xsd" MetadataType="Schema" ID="a6c7adc9-0d16-457b-942b-d54861ee9819" SourceId="1" SourceUrl="http://testbroker.sycomore.vn/BrokerWCF.svc?xsd=xsd0" />
+    <MetadataFile FileName="BrokerWCF.disco" MetadataType="Disco" ID="32b9c9cf-e6b1-4fcd-a2d3-5d42b1932971" SourceId="1" SourceUrl="http://testbroker.sycomore.vn/BrokerWCF.svc?disco" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

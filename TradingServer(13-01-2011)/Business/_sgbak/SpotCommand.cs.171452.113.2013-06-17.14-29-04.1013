@@ -1,0 +1,2143 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.ServiceModel;
+using System.Transactions;
+
+namespace TradingServer.Business
+{
+    public class SpotCommand : IPresenter.IMarketArea
+    {
+        public IPresenter.AddCommandDelegate AddCommandNotify { get; set; }
+        public int IMarketAreaID { get; set; }
+        public Market MarketContainer { get; set; }
+        List<TradeType> IPresenter.IMarketArea.Type { get; set; }
+        public string IMarketAreaName { get; set; }
+        public List<Symbol> ListSymbol { get; set; }
+        public List<ParameterItem> MarketAreaConfig { get; set; }
+        public delegate void SendCommandID(int ID);
+        public static int NumCheck { get; set; }
+        //===================================================================================
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        public void AddCommand(OpenTrade Command)
+        {   
+            #region Set Property IsBuy And CommandType Send To Client
+            bool IsBuy = false;
+            if (Command.Type.ID == 1 || Command.Type.ID == 7 || Command.Type.ID == 9)
+                IsBuy = true;
+
+            string CommandType = string.Empty;
+            if (Command.Type.ID == 1 || Command.Type.ID == 2)
+            {
+                CommandType = "Open";
+            }
+            else
+            {
+                if (Command.Type.ID == 7)
+                {
+                    CommandType = "BuyLimit";
+                }
+
+                if (Command.Type.ID == 8)
+                {
+                    CommandType = "SellLimit";
+                }
+
+                if (Command.Type.ID == 9)
+                {
+                    CommandType = "BuyStop";
+                }
+
+                if (Command.Type.ID == 10)
+                {
+                    CommandType = "SellStop";
+                }
+            }
+            #endregion                    
+
+            int Result = -1;
+
+            Command.IsClose = false;
+
+            if (!Command.IsReOpen && !Command.IsReNewOpen)
+                Command.OpenTime = DateTime.Now;
+
+            Command.CloseTime = DateTime.Now;
+            
+            Command.ExpTime = DateTime.Now;
+            
+            Command.Taxes = 0;
+
+            //if (string.IsNullOrEmpty(Command.Comment))
+            //    Command.Comment = "[spot command]";
+            
+            #region Find Price Close Of Symbol
+            switch (Command.Type.ID)
+            {
+                case 1:
+                    Command.ClosePrice = Command.Symbol.TickValue.Bid;
+                    break;
+                case 2:
+                    Command.ClosePrice = Command.Symbol.TickValue.Ask;
+                    break;
+                case 7: //BUY LIMIT
+                    Command.ClosePrice = Command.Symbol.TickValue.Bid;                    
+                    break;
+                case 8: //SELL LIMIT
+                    Command.ClosePrice = Command.Symbol.TickValue.Ask;                    
+                    break;
+                case 9: //BUY STOP
+                    Command.ClosePrice = Command.Symbol.TickValue.Bid;                    
+                    break;
+                case 10:    //SELL STOP
+                    Command.ClosePrice = Command.Symbol.TickValue.Ask;
+                    break;
+            }
+            #endregion
+
+            //Calculator Profit Of Command        
+            if (Command.Type.ID == 1 || Command.Type.ID == 2)
+            {
+                Command.CalculatorProfitCommand(Command);                
+                Command.Profit = Command.Symbol.ConvertCurrencyToUSD(Command.Symbol.Currency, Command.Profit, false, Command.SpreaDifferenceInOpenTrade, Command.Symbol.Digit);
+
+                #region CALCULATION MARGIN FOR COMMAND
+                //Call Function Calculator Margin Of Command            
+                Command.CalculatorMarginCommand(Command);
+                #endregion
+                
+                //CALCULATION COMMISSION
+                Command.Commission = Model.CalculationFormular.Instance.CalculationCommission(Command);
+            }
+
+            string CommandCode = string.Empty;
+
+            #region REND CLIENT CODE IF CLIENT CODE == EMPTY
+            if (string.IsNullOrEmpty(Command.ClientCode))
+            {
+                string tempCode = string.Empty;
+                Random ran = new Random();
+                int tempRan = ran.Next(0000000, 9999999);
+                Command.ClientCode = Command.Investor.InvestorID + "_" + tempRan;
+                bool isOK = false;
+
+                while (!isOK)
+                {
+                    if (Command.Investor.CommandList != null && Command.Investor.CommandList.Count > 0)
+                    {
+                        int count = Command.Investor.CommandList.Count;
+                        for (int i = 0; i < count; i++)
+                        {
+                            if (Command.Investor.CommandList[i].ClientCode == Command.ClientCode)
+                            {
+                                Command.ClientCode = Command.Investor.InvestorID + "_" + ran.Next(0000000, 9999999);
+                                break;
+                            }
+                        }
+
+                        isOK = true;
+                    }
+                    else
+                    {
+                        isOK = true;
+                    }
+                }
+            }
+            #endregion            
+
+            #region INSERT SYSTEM LOG EVENT MAKE COMMAND
+            string size = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Size.ToString(), 2);
+            string openPrice = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.OpenPrice.ToString(), Command.Symbol.Digit);
+            string takeProfit = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.TakeProfit.ToString(), Command.Symbol.Digit);
+            string stopLoss = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.StopLoss.ToString(), Command.Symbol.Digit);
+            string bid = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Bid.ToString(), Command.Symbol.Digit);
+            string ask = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Ask.ToString(), Command.Symbol.Digit);
+
+            string mode = TradingServer.Model.TradingCalculate.Instance.ConvertTypeIDToString(Command.Type.ID);
+            string content = string.Empty;
+            string comment = string.Empty;
+            #endregion
+
+            #region GET CONFIG AND SET TO OPEN TRADE
+            string adminagentConfig = string.Empty;
+            string agentwithAgentConfig = string.Empty;
+            string agentInvestorConfig = string.Empty;
+
+            string adminAgentComm = string.Empty;
+            string agentwithAgentComm = string.Empty;
+
+            #region GET AGENT INVESTOR CONFIG
+            if (Business.Market.ListAgentConfig != null)
+            {
+                int countAgent = Business.Market.ListAgentConfig.Count;
+                for (int i = 0; i < countAgent; i++)
+                {
+                    if (Business.Market.ListAgentConfig[i].ListIAgentInvestor != null)
+                    {
+                        int countInvestor = Business.Market.ListAgentConfig[i].ListIAgentInvestor.Count;
+                        for (int j = 0; j < countInvestor; j++)
+                        {
+                            if (Business.Market.ListAgentConfig[i].ListIAgentInvestor[j] == null)
+                                continue;
+
+                            if (Business.Market.ListAgentConfig[i].ListIAgentInvestor[j].InvestorID == Command.Investor.InvestorID)
+                            {
+                                #region GET AGENT INVESTOR CONFIG
+                                if (Business.Market.ListAgentConfig[i].ListIAgentInvestor[j] != null)
+                                {
+                                    agentInvestorConfig = Business.Market.ListAgentConfig[i].ListIAgentInvestor[j].AgentID + "{" +
+                                                            Business.Market.ListAgentConfig[i].ListIAgentInvestor[j].InvestorID + "{" +
+                                                            Business.Market.ListAgentConfig[i].ListIAgentInvestor[j].PercentAgent + "|";
+                                }
+                                #endregion
+
+                                bool isRootAgent = true;
+                                int agentRootID = -1;
+
+                                #region GET AGENT WITH AGENT CONFIG
+                                if (Business.Market.ListAgentConfig[i].ListIAgentWithAgent != null)
+                                {
+                                    int countAgentWithAgent = Business.Market.ListAgentConfig[i].ListIAgentWithAgent.Count;
+                                    for (int n = 0; n < countAgentWithAgent; n++)
+                                    {
+                                        if (Business.Market.ListAgentConfig[i].ListIAgentWithAgent[n].AgentID == 
+                                            Business.Market.ListAgentConfig[i].ListIAgentInvestor[j].AgentID)
+                                        {
+                                            agentwithAgentConfig = Business.Market.marketInstance.GetAgentWithAgentRefConfig(
+                                                Business.Market.ListAgentConfig[i].ListIAgentWithAgent,
+                                                Business.Market.ListAgentConfig[i].ListIAdminAgent,
+                                                Business.Market.ListAgentConfig[i].ListIAgentInvestor[j].AgentID);
+
+                                            isRootAgent = false;
+                                            agentRootID = Business.Market.ListAgentConfig[i].ListIAgentWithAgent[n].AgentID;
+                                            break;
+                                        }
+                                    }
+                                }
+                                #endregion
+
+                                #region GET ADMIN WITH AGENT CONFIG
+                                if (isRootAgent)
+                                {
+                                    if (agentRootID < 0)
+                                        agentRootID = Business.Market.ListAgentConfig[i].ListIAgentInvestor[j].AgentID;
+
+                                    if (Business.Market.ListAgentConfig[i].ListIAdminAgent != null)
+                                    {
+                                        int countAdminAgent = Business.Market.ListAgentConfig[i].ListIAdminAgent.Count;
+                                        for (int n = 0; n < countAdminAgent; n++)
+                                        {
+                                            if (Business.Market.ListAgentConfig[i].ListIAdminAgent[n].AgentID ==
+                                                agentRootID)
+                                            {
+                                                adminagentConfig = "|" + Business.Market.ListAgentConfig[i].ListIAdminAgent[n].IAdminAgentID + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgent[n].AdminID + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgent[n].AgentID + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgent[n].SymbolID + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgent[n].DefaultPL + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgent[n].IsDelete + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgent[n].PercentPL + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgent[n].IsSkipRisk;
+
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                #endregion
+
+                                #region GET IAGENTWITHAGENT COMMISSION
+                                if (Business.Market.ListAgentConfig[i].ListIAgentWithAgentCommission != null)
+                                {
+                                    int countIAgentWithAgentComm = Business.Market.ListAgentConfig[i].ListIAgentWithAgentCommission.Count;
+                                    for (int n = 0; n < countIAgentWithAgentComm; n++)
+                                    {
+                                        if (Business.Market.ListAgentConfig[i].ListIAgentWithAgentCommission[n].SecondParameterID ==
+                                            Business.Market.ListAgentConfig[i].ListIAgentInvestor[j].AgentID &&
+                                            Business.Market.ListAgentConfig[i].ListIAgentWithAgentCommission[n].GroupID == 
+                                            Command.Investor.InvestorGroupInstance.InvestorGroupID &&
+                                            Business.Market.ListAgentConfig[i].ListIAgentWithAgentCommission[n].SymbolID == 
+                                            Command.Symbol.SymbolID)
+                                        {
+                                            agentwithAgentComm = Business.Market.marketInstance.GetIAgentWithAgentCommission(
+                                                Business.Market.ListAgentConfig[i].ListIAgentWithAgentCommission,
+                                                Business.Market.ListAgentConfig[i].ListIAdminAgentCommission,
+                                                Business.Market.ListAgentConfig[i].ListIAgentInvestor[j].AgentID,
+                                                Command.Investor.InvestorGroupInstance.InvestorGroupID,
+                                                Command.Symbol.SymbolID);
+                                        }
+                                    }
+                                }
+                                #endregion
+
+                                #region GET IADMINAGENT COMMISSION
+                                if (isRootAgent)
+                                {
+                                    if (agentRootID < 0)
+                                        agentRootID = Business.Market.ListAgentConfig[i].ListIAgentInvestor[j].AgentID;
+
+                                    if (Business.Market.ListAgentConfig[i].ListIAdminAgentCommission != null)
+                                    {
+                                        int countIAdminAgent = Business.Market.ListAgentConfig[i].ListIAdminAgentCommission.Count;
+                                        for (int n = 0; n < countIAdminAgent; n++)
+                                        {
+                                            if (Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].SecondParameterID == agentRootID &&
+                                                Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].GroupID == Command.Investor.InvestorGroupInstance.InvestorGroupID &&
+                                                Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].SymbolID == Command.Symbol.SymbolID)
+                                            {
+                                                adminAgentComm = "|" + Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].IParameterID + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].FirstParameterID + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].SecondParameterID + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].GroupID + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].SymbolID + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].Comission + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].IsDelete + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].ParentCommission + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].ChildCommission + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].ParentPipReBate + "{" +
+                                                    Business.Market.ListAgentConfig[i].ListIAdminAgentCommission[n].ChildPipReBate;
+                                            }
+                                        }
+                                    }
+                                }
+                                #endregion
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            #endregion
+
+            //if (string.IsNullOrEmpty(agentInvestorConfig))
+            //    agentInvestorConfig = "|";
+
+            //if (string.IsNullOrEmpty(agentwithAgentConfig))
+            //    agentInvestorConfig = "|";
+
+            //if (string.IsNullOrEmpty(adminagentConfig))
+            //    adminagentConfig = "|";
+
+            Command.AgentRefConfig = agentInvestorConfig + agentwithAgentConfig + adminagentConfig + ">" + agentwithAgentComm + adminAgentComm;
+            #endregion
+
+            //====================MT4 CONNECT MAKE COMMAND ==============================
+            if (Business.Market.IsConnectMT4)
+            {
+                if (!Business.Market.StatusConnect)
+                {
+                    string Message = "AddCommandByManager$False,DISCONNECT FROM MT4," + Result + "," + Command.Investor.InvestorID + "," +
+                          Command.Symbol.Name + "," + Command.Size + "," + IsBuy + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," +
+                              Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," +
+                              CommandType + "," + 1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Open";
+
+                    if (Command.Investor.ClientCommandQueue == null)
+                        Command.Investor.ClientCommandQueue = new List<string>();
+
+                    //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                    //if (countInvestorOnline > 0)
+                        Command.Investor.ClientCommandQueue.Add(Message);
+
+                    //SEND COMMAND TO CLIENT USING WEBSOCKET
+                    Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+                }
+
+                #region CALL MAKE COMMAND MT4
+                string cmd = string.Empty;
+
+                #region BUILD COMMAND
+                switch (Command.Type.ID)
+                {
+                    case 1:
+                        cmd = BuildCommandElement5ConnectMT4.Mode.BuildCommand.Instance.ConvertBuyToString(Command.Investor.Code, Command.OpenPrice, Command.Size,
+                                                        Command.StopLoss, Command.TakeProfit, Command.Symbol.Name, Command.Comment);
+                        break;
+
+                    case 2:
+                        cmd = BuildCommandElement5ConnectMT4.Mode.BuildCommand.Instance.ConvertSellToString(Command.Investor.Code, Command.OpenPrice,
+                            Command.Size, Command.StopLoss, Command.TakeProfit, Command.Symbol.Name, Command.Comment);
+                        break;
+
+                    case 7:
+                        cmd = BuildCommandElement5ConnectMT4.Mode.BuildCommand.Instance.ConvertBuyLimitToString(Command.Investor.Code, Command.OpenPrice,
+                            Command.Size, Command.StopLoss, Command.TakeProfit, Command.Symbol.Name, Command.Comment);
+                        break;
+
+                    case 8:
+                        cmd = BuildCommandElement5ConnectMT4.Mode.BuildCommand.Instance.ConvertSellLimitToString(Command.Investor.Code, Command.OpenPrice,
+                            Command.Size, Command.StopLoss, Command.TakeProfit, Command.Symbol.Name, Command.Comment);
+                        break;
+
+                    case 9:
+                        cmd = BuildCommandElement5ConnectMT4.Mode.BuildCommand.Instance.ConvertBuyStopToString(Command.Investor.Code, Command.OpenPrice,
+                            Command.Size, Command.StopLoss, Command.TakeProfit, Command.Symbol.Name, Command.Comment);
+                        break;
+
+                    case 10:
+                        cmd = BuildCommandElement5ConnectMT4.Mode.BuildCommand.Instance.ConvertSellStopToString(Command.Investor.Code, Command.OpenPrice,
+                            Command.Size, Command.StopLoss, Command.TakeProfit, Command.Symbol.Name, Command.Comment);
+                        break;
+                }
+                #endregion
+
+                //log command
+                TradingServer.Model.TradingCalculate.Instance.StreamFile("[Command Send Make] - " + cmd);
+
+                string resultMT4 = Business.Market.InstanceSocket.SendToMT4(Business.Market.DEFAULT_IPADDRESS, Business.Market.DEFAULT_PORT, cmd);
+
+                //string resultMT4 = LibraryAPI.CPPOut.Command(cmd);
+                //string resultMT4 = Business.Market.InstanceGlobalDelegate.SendCommand(cmd);
+
+                //log command result
+                TradingServer.Model.TradingCalculate.Instance.StreamFileSendMT4("[Receive Command Make] - " + resultMT4 + " Count:" + Business.Market.CountMessageReciveMT4);
+                Business.Market.CountMessageReciveMT4++;
+
+                bool isMakeCommandSuccess = false;
+                string strError = string.Empty;
+                if (!string.IsNullOrEmpty(resultMT4))
+                {
+                    string[] subValue = resultMT4.Split('$');
+                    if (subValue.Length == 2)
+                    {
+                        string[] subParameter = subValue[1].Split('{');
+
+                        if (int.Parse(subParameter[0]) == 1)
+                            isMakeCommandSuccess = true;
+
+                        if (!isMakeCommandSuccess)
+                            strError = subParameter[1];
+                    }
+                }
+                #endregion
+
+                #region NOTIFY COMMAND TO CLIENT IF MAKE COMMAND IN MT4 FALSE
+                if (!isMakeCommandSuccess)
+                {
+                    if (Command.IsServer)
+                    {
+                        string Message = "AddCommandByManager$False,MT4 CAN'T MAKE COMMAND," + Result + "," + Command.Investor.InvestorID + "," +
+                           Command.Symbol.Name + "," + Command.Size + "," + IsBuy + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," +
+                               Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," +
+                               CommandType + "," + 1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Open";
+
+                        if (Command.Investor.ClientCommandQueue == null)
+                            Command.Investor.ClientCommandQueue = new List<string>();
+
+                        //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                        //if (countInvestorOnline > 0)
+                            Command.Investor.ClientCommandQueue.Add(Message);
+
+                        //SEND COMMAND TO CLIENT USING WEBSOCKET
+                        Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+                    }
+                    else
+                    {
+                        string Message = "AddCommand$False,MT4 CAN'T MAKE COMMAND," + Result + "," + Command.Investor.InvestorID + "," +
+                            Command.Symbol.Name + "," + Command.Size + "," + IsBuy + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," +
+                                Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," +
+                                CommandType + "," + 1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Open";
+
+                        if (Command.Investor.ClientCommandQueue == null)
+                            Command.Investor.ClientCommandQueue = new List<string>();
+
+                        //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                        //if (countInvestorOnline > 0)
+                            Command.Investor.ClientCommandQueue.Add(Message);
+
+                        //SEND COMMAND TO CLIENT USING WEBSOCKET
+                        Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+                    }
+
+                    return;
+                }
+                #endregion
+            }
+            else
+            {
+                bool isPending = TradingServer.Model.TradingCalculate.Instance.CheckIsPendingPosition(Command.Type.ID);
+                if (isPending)
+                    Command.Profit = 0;
+
+                #region Add Command To Database And Build Command Code
+                //Add Command To Database
+                //                
+                Result = TradingServer.Facade.FacadeAddNewOpenTrade(Command);
+
+                #endregion
+
+                #region MAP COMMAND AND ADD TO LIST COMMAND MARKET
+                if (Result > 0)
+                {
+                    Command.ID = Result;
+
+                    //CHANGE FORMAT COMMAND CODE, IF CLOSE HAFL LOST THEN RENEW COMMAND CODE(22/04/2013)
+                    //Call Function Update Command Code Of Command
+                    if (Command.IsReOpen)
+                    {
+                        CommandCode = Command.CommandCode;
+                    }
+                    else
+                    {
+                        //Call Function Update Command Code Of Command
+                        CommandCode = TradingServer.Model.TradingCalculate.Instance.BuildCommandCode(Result.ToString());
+                        TradingServer.Facade.FacadeUpdateCommandCode(Result, CommandCode);
+                    }
+
+                    //CommandCode = TradingServer.Model.TradingCalculate.Instance.BuildCommandCode(Result.ToString());
+                    TradingServer.Facade.FacadeUpdateCommandCode(Result, CommandCode);
+
+                    double spreaDifferenceInCommand = Model.CommandFramework.CommandFrameworkInstance.GetSpreadDifference(Command.Symbol.SecurityID, Command.Investor.InvestorGroupInstance.InvestorGroupID);
+
+                    bool addCommandToInvestor = false;
+                    bool addCommandToSymbol = false;
+                    bool addCommandToCommandExe = false;
+
+                    #region Build Command And Add Command To CommandList In Symbol And Command List In Investor
+                    //Build Two Instance OpenTrade
+                    //One Instance For Investor 
+                    //One Instance For Symbol And MarketArea
+                    #region Build Instance Open Trade For Command Executor
+                    Business.OpenTrade newOpenTradeExe = new OpenTrade();
+                    newOpenTradeExe.ID = Result;
+                    newOpenTradeExe.ClientCode = Command.ClientCode;
+                    newOpenTradeExe.ClosePrice = Command.ClosePrice;
+                    newOpenTradeExe.CloseTime = Command.CloseTime;
+                    newOpenTradeExe.CommandCode = CommandCode;
+                    newOpenTradeExe.Commission = Command.Commission;
+                    newOpenTradeExe.ExpTime = Command.ExpTime;
+                    newOpenTradeExe.Investor = Command.Investor;
+                    newOpenTradeExe.IsClose = false;
+                    newOpenTradeExe.OpenPrice = Command.OpenPrice;
+                    newOpenTradeExe.OpenTime = Command.OpenTime;
+                    newOpenTradeExe.Profit = Command.Profit;
+                    newOpenTradeExe.Size = Command.Size;
+                    newOpenTradeExe.StopLoss = Command.StopLoss;
+                    newOpenTradeExe.Swap = Command.Swap;
+                    newOpenTradeExe.Symbol = Command.Symbol;
+                    newOpenTradeExe.TakeProfit = Command.TakeProfit;
+                    newOpenTradeExe.Type = new TradeType();
+                    newOpenTradeExe.Type.ID = Command.Type.ID;
+                    newOpenTradeExe.Type.Name = Command.Type.Name;
+                    newOpenTradeExe.Margin = Command.Margin;
+                    newOpenTradeExe.IGroupSecurity = Command.IGroupSecurity;
+                    newOpenTradeExe.Commission = Command.Commission;
+                    newOpenTradeExe.IsHedged = Command.IsHedged;
+                    newOpenTradeExe.SpreaDifferenceInOpenTrade = spreaDifferenceInCommand;
+                    newOpenTradeExe.AgentCommission = Command.AgentCommission;
+                    newOpenTradeExe.Comment = Command.Comment;
+                    newOpenTradeExe.AgentRefConfig = Command.AgentRefConfig;
+                    #endregion
+
+                    #region ADD COMMAND TO COMMAND EXECUTOR
+                    if (Business.Market.CommandExecutor != null)
+                    {
+                        Business.Market.CommandExecutor.Add(newOpenTradeExe);
+                        addCommandToCommandExe = true;
+                    }
+                    else
+                    {
+                        Business.Market.CommandExecutor = new List<OpenTrade>();
+                        Business.Market.CommandExecutor.Add(newOpenTradeExe);
+                        addCommandToCommandExe = true;
+                    }
+                    #endregion
+
+                    #region Build Instance OpenTrade For Investor
+                    Business.OpenTrade newOpenTradeInvestor = new OpenTrade();
+                    newOpenTradeInvestor.ID = Result;
+                    newOpenTradeInvestor.ClientCode = Command.ClientCode;
+                    newOpenTradeInvestor.ClosePrice = Command.ClosePrice;
+                    newOpenTradeInvestor.CloseTime = Command.CloseTime;
+                    newOpenTradeInvestor.CommandCode = CommandCode;
+                    newOpenTradeInvestor.Commission = Command.Commission;
+                    newOpenTradeInvestor.ExpTime = Command.ExpTime;
+                    newOpenTradeInvestor.Investor = Command.Investor;
+                    newOpenTradeInvestor.IsClose = Command.IsClose;
+                    newOpenTradeInvestor.OpenPrice = Command.OpenPrice;
+                    newOpenTradeInvestor.OpenTime = Command.OpenTime;
+                    newOpenTradeInvestor.Profit = Command.Profit;
+                    newOpenTradeInvestor.Size = Command.Size;
+                    newOpenTradeInvestor.StopLoss = Command.StopLoss;
+                    newOpenTradeInvestor.Swap = Command.Swap;
+                    newOpenTradeInvestor.Symbol = Command.Symbol;
+                    newOpenTradeInvestor.TakeProfit = Command.TakeProfit;
+                    newOpenTradeInvestor.Type = new TradeType();
+                    newOpenTradeInvestor.Type.ID = Command.Type.ID;
+                    newOpenTradeInvestor.Type.Name = Command.Type.Name;
+                    //newOpenTradeInvestor.Type = Command.Type;
+                    newOpenTradeInvestor.Margin = Command.Margin;
+                    newOpenTradeInvestor.IGroupSecurity = Command.IGroupSecurity;
+                    newOpenTradeInvestor.Commission = Command.Commission;
+                    newOpenTradeInvestor.IsHedged = Command.IsHedged;
+                    newOpenTradeInvestor.SpreaDifferenceInOpenTrade = spreaDifferenceInCommand;
+                    newOpenTradeInvestor.AgentCommission = Command.AgentCommission;
+                    newOpenTradeInvestor.Comment = Command.Comment;
+                    newOpenTradeInvestor.AgentRefConfig = Command.AgentRefConfig;
+                    newOpenTradeInvestor.InsExe = new OpenTrade();
+                    newOpenTradeInvestor.InsExe = newOpenTradeExe;
+                    #endregion
+
+                    #region Find Investor In Investor List And Add Command To Investor List
+                    //Find Investor In Investor List And Add Command To Investor List
+                    if (Business.Market.InvestorList != null)
+                    {
+                        int countInvestor = Business.Market.InvestorList.Count;
+                        for (int n = 0; n < Business.Market.InvestorList.Count; n++)
+                        {
+                            if (Business.Market.InvestorList[n].InvestorID == newOpenTradeInvestor.Investor.InvestorID)
+                            {
+                                if (Business.Market.InvestorList[n].CommandList != null)
+                                {
+                                    Business.Market.InvestorList[n].CommandList.Add(newOpenTradeInvestor);
+                                    addCommandToInvestor = true;
+                                }
+                                else
+                                {
+                                    Business.Market.InvestorList[n].CommandList = new List<OpenTrade>();
+                                    Business.Market.InvestorList[n].CommandList.Add(newOpenTradeInvestor);
+                                    addCommandToInvestor = true;
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                    #endregion
+
+                    #region Build Instance Open Trade For Symbol
+                    Business.OpenTrade newOpenTradeSymbol = new OpenTrade();
+                    newOpenTradeSymbol.ID = Result;
+                    newOpenTradeSymbol.ClientCode = Command.ClientCode;
+                    newOpenTradeSymbol.ClosePrice = Command.ClosePrice;
+                    newOpenTradeSymbol.CloseTime = Command.CloseTime;
+                    newOpenTradeSymbol.CommandCode = CommandCode;
+                    newOpenTradeSymbol.Commission = Command.Commission;
+                    newOpenTradeSymbol.ExpTime = Command.ExpTime;
+                    newOpenTradeSymbol.Investor = Command.Investor;
+                    newOpenTradeSymbol.IsClose = false;
+                    newOpenTradeSymbol.OpenPrice = Command.OpenPrice;
+                    newOpenTradeSymbol.OpenTime = Command.OpenTime;
+                    newOpenTradeSymbol.Profit = Command.Profit;
+                    newOpenTradeSymbol.Size = Command.Size;
+                    newOpenTradeSymbol.StopLoss = Command.StopLoss;
+                    newOpenTradeSymbol.Swap = Command.Swap;
+                    newOpenTradeSymbol.Symbol = Command.Symbol;
+                    newOpenTradeSymbol.TakeProfit = Command.TakeProfit;
+                    newOpenTradeSymbol.Type = new TradeType();
+                    newOpenTradeSymbol.Type.ID = Command.Type.ID;
+                    newOpenTradeSymbol.Type.Name = Command.Type.Name;
+                    newOpenTradeSymbol.Margin = Command.Margin;
+                    newOpenTradeSymbol.IGroupSecurity = Command.IGroupSecurity;
+                    newOpenTradeSymbol.Commission = Command.Commission;
+                    newOpenTradeSymbol.IsHedged = Command.IsHedged;
+                    newOpenTradeSymbol.SpreaDifferenceInOpenTrade = spreaDifferenceInCommand;
+                    newOpenTradeSymbol.AgentCommission = Command.AgentCommission;
+                    newOpenTradeSymbol.Comment = Command.Comment;
+                    newOpenTradeSymbol.AgentRefConfig = Command.AgentRefConfig;
+                    newOpenTradeSymbol.InsExe = new OpenTrade();
+                    newOpenTradeSymbol.InsExe = newOpenTradeExe;
+                    #endregion
+
+                    #region Find Symbol In Market And Add Command To Market Area And List Symbol
+                    //Find Symbol In Market And Add Command To Market Area And List Symbol
+                    if (Business.Market.SymbolList != null)
+                    {
+                        int countSymbol = Business.Market.SymbolList.Count;
+                        for (int i = 0; i < Business.Market.SymbolList.Count; i++)
+                        {
+                            if (Business.Market.SymbolList[i].SymbolID == newOpenTradeSymbol.Symbol.SymbolID)
+                            {
+                                if (Business.Market.SymbolList[i].CommandList != null)
+                                {
+                                    Business.Market.SymbolList[i].CommandList.Add(newOpenTradeSymbol);
+                                    addCommandToSymbol = true;
+                                }
+                                else
+                                {
+                                    Business.Market.SymbolList[i].CommandList = new List<OpenTrade>();
+                                    Business.Market.SymbolList[i].CommandList.Add(newOpenTradeSymbol);
+                                    addCommandToSymbol = true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    #endregion
+
+                    //If Client Add New Command Complete Then Add Message To Client Queue
+                    //if (Command.Investor.ClientCommandQueue == null)
+                    //    Command.Investor.ClientCommandQueue = new List<string>();
+
+                    #region Map Command Server To Client
+                    if (Command.IsServer)
+                    {
+                        string Message = "AddCommandByManager$True,Add New Command Complete," + Result + "," + Command.Investor.InvestorID + "," +
+                           Command.Symbol.Name + "," + Command.Size + "," + IsBuy + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," +
+                               Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," +
+                               CommandType + "," + 1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Open";
+
+                        if (Command.Investor.ClientCommandQueue == null)
+                            Command.Investor.ClientCommandQueue = new List<string>();
+
+                        //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                        //if (countInvestorOnline > 0)
+                            Command.Investor.ClientCommandQueue.Add(Message);
+
+                        //SEND COMMAND TO AGENT SERVER
+                        Message += "," + Command.AgentRefConfig + "," + Command.SpreaDifferenceInOpenTrade;
+                        Business.AgentNotify newAgentNotify = new AgentNotify();
+                        newAgentNotify.NotifyMessage = Message;
+                        TradingServer.Agent.AgentConfig.Instance.AddNotifyToAgent(newAgentNotify, Command.Investor.InvestorGroupInstance);
+
+                        //SEND COMMAND TO CLIENT USING WEBSOCKET
+                        Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+                    }
+                    else
+                    {
+                        string Message = "AddCommand$True,Add New Command Complete," + Result + "," + Command.Investor.InvestorID + "," +
+                            Command.Symbol.Name + "," + Command.Size + "," + IsBuy + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," +
+                                Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," +
+                                CommandType + "," + 1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Open";
+
+                        if (Command.Investor.ClientCommandQueue == null)
+                            Command.Investor.ClientCommandQueue = new List<string>();
+
+                        //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                        //if (countInvestorOnline > 0)
+                        Command.Investor.ClientCommandQueue.Add(Message);
+
+                        //SEND COMMAND TO AGENT SERVER
+                        Message += "," + Command.AgentRefConfig + "," + Command.SpreaDifferenceInOpenTrade;
+                        Business.AgentNotify newAgentNotify = new AgentNotify();
+                        newAgentNotify.NotifyMessage = Message;
+                        TradingServer.Agent.AgentConfig.Instance.AddNotifyToAgent(newAgentNotify, Command.Investor.InvestorGroupInstance);
+
+                        //SEND COMMAND TO CLIENT USING WEBSOCKET
+                        Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+                    }
+                    #endregion
+
+                    #region INSERT SYSTEM LOG
+                    if (!Command.IsServer)
+                    {
+                        content = "'" + Command.Investor.Code + "': order #" + CommandCode + " " + mode + " " + size + " " + Command.Symbol.Name + " at " +
+                            openPrice + " commission: " + Command.Commission;
+                        TradingServer.Facade.FacadeAddNewSystemLog(5, content, "[instant buy]", Command.Investor.IpAddress, Command.Investor.Code);
+                    }
+                    else
+                    {
+                        content = "'" + Command.DealerCode + "': order #" + CommandCode + " " + mode + " " + size + " " + Command.Symbol.Name + " at " +
+                            openPrice + " commission: " + Command.Commission;
+                        TradingServer.Facade.FacadeAddNewSystemLog(5, content, "[instant buy]", Command.Investor.IpAddress, Command.Investor.Code);
+                    }
+                    #endregion
+
+                    Command.IsHedged = Command.Symbol.IsHedged;
+
+                    //Command.Investor.UpdateCommand(Command);
+                    Business.Margin newMargin = new Margin();
+                    newMargin = Command.Symbol.CalculationTotalMargin(Command.Investor.CommandList);
+                    Command.Investor.Margin = newMargin.TotalMargin;
+                    Command.Investor.FreezeMargin = newMargin.TotalFreezeMargin;
+
+                    //Business.RequestDealer Request = new RequestDealer();
+                    //NOTIFY INVESTOR TO MANAGER
+                    TradingServer.Facade.FacadeSendNotifyManagerRequest(3, Command.Investor);
+
+                    //SEND NOTIFY TO MANAGER THEN ADD NEW ACCOUNT
+                    TradingServer.Facade.FacadeSendNoticeManagerRequest(1, Command);
+                    #endregion
+                }
+                else
+                {
+                    #region Return Error Can't Insert Command To Database For Client
+                    //Add Result To Client Command Queue Of Investor
+                    string Message = "AddCommand$False,Can't Insert Database," + Result + "," + Command.Investor.InvestorID + "," +
+                        Command.Symbol.Name + "," + Command.Size + "," + IsBuy + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," +
+                            Command.TakeProfit + "," + Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," +
+                            CommandType + "," + 1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + "0000000," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Open";
+
+                    if (Command.Investor.ClientCommandQueue == null)
+                        Command.Investor.ClientCommandQueue = new List<string>();
+
+                    //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                    //if (countInvestorOnline > 0)
+                        Command.Investor.ClientCommandQueue.Add(Message);
+
+                    //SEND COMMAND TO CLIENT USING WEBSOCKET
+                    Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+
+                    TradingServer.Facade.FacadeAddNewSystemLog(1, "insert database unsuccess", "[add command]", "", "");
+                    #endregion
+                }
+                #endregion
+            }
+            //===========================================================================
+
+            //SEND NOTIFY TO BROKER SERVER
+            //try
+            //{
+            //    bool isPending = TradingServer.Model.TradingCalculate.Instance.CheckIsPendingPosition(Command.Type.ID);
+            //    if (!isPending)
+            //    {
+            //        string cmdSendBroker = Command.Type.ID + "¬" + Command.Size + "¬" + Command.Symbol.Name + "¬" + Command.Investor.Code + "¬" +
+            //            Command.CommandCode + "¬" + Command.OpenTime + "¬" + Command.OpenPrice + "¬" + Command.ClosePrice + "¬" + Command.Commission + "¬" +
+            //            Command.Swap + "¬" + Command.Profit + "¬" + Command.Comment;
+
+            //        Business.Market.clientBroker.NotifyBroker(cmdSendBroker);
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+
+            //}
+        }
+       
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        public void CloseCommand(Business.OpenTrade Command)
+        {
+            if (Command.IsMultiClose)
+            {
+                Command.Symbol.MarketAreaRef.MultiCloseCommand(Command);
+                return;
+            }
+
+            //Check Condition Close Command
+            Business.OpenTrade newOpenTrade = new OpenTrade();            
+
+            newOpenTrade.ClientCode = Command.ClientCode;
+            newOpenTrade.ClosePrice = Command.ClosePrice;
+            newOpenTrade.CloseTime = DateTime.Now;
+            newOpenTrade.CommandCode = Command.CommandCode;
+            newOpenTrade.Commission = Command.Commission;
+            newOpenTrade.ExpTime = Command.ExpTime;
+            newOpenTrade.ID = Command.ID;
+            newOpenTrade.IGroupSecurity = Command.IGroupSecurity;
+            newOpenTrade.Investor = Command.Investor;
+            newOpenTrade.IsClose = true;
+            newOpenTrade.IsHedged = Command.IsHedged;
+            newOpenTrade.Margin = Command.Margin;            
+            newOpenTrade.OpenPrice = Command.OpenPrice;
+            newOpenTrade.OpenTime = Command.OpenTime;
+            newOpenTrade.Profit = Command.Profit;
+            newOpenTrade.Size = Command.Size;
+            newOpenTrade.StopLoss = Command.StopLoss;
+            newOpenTrade.Swap = Command.Swap;
+            newOpenTrade.Symbol = Command.Symbol;
+            newOpenTrade.TakeProfit = Command.TakeProfit;
+            newOpenTrade.Taxes = Command.Taxes;
+            newOpenTrade.Type = Command.Type;
+            newOpenTrade.TotalSwap = Command.TotalSwap;
+            newOpenTrade.IsServer = Command.IsServer;
+            newOpenTrade.AgentRefConfig = Command.AgentRefConfig;
+
+            if (string.IsNullOrEmpty(Command.Comment))
+            {
+                newOpenTrade.Comment = "[close spot command]";
+            }
+            else
+            {
+                newOpenTrade.Comment = Command.Comment;
+            }
+
+            newOpenTrade.AgentCommission = Command.AgentCommission;
+
+            //Call Function Calculator Profit Command Close            
+            newOpenTrade.CalculatorProfitCommand(newOpenTrade);            
+            newOpenTrade.Profit = newOpenTrade.Symbol.ConvertCurrencyToUSD(newOpenTrade.Symbol.Currency, newOpenTrade.Profit, false, newOpenTrade.SpreaDifferenceInOpenTrade, newOpenTrade.Symbol.Digit);
+
+            #region CONNECT MT4 AND CLOSE COMMAND
+            if (Business.Market.IsConnectMT4)
+            {
+                if (!Business.Market.StatusConnect)
+                {
+                    string Message = "CloseCommandByManager$False,DISCONNECT FROM MT4," + Command.ID + "," + Command.Investor.InvestorID + "," + Command.Symbol.Name + "," +
+                                Command.Size + "," + true + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," + Command.TakeProfit + "," +
+                                Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + Command.Type.Name + "," +
+                                1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + Command.CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin +
+                                ",Close," + Command.CloseTime;
+
+                    if (Command.Investor.ClientCommandQueue == null)
+                        Command.Investor.ClientCommandQueue = new List<string>();
+
+                    //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                    //if (countInvestorOnline > 0)
+                        Command.Investor.ClientCommandQueue.Add(Message);
+
+                    //SEND COMMAND TO CLIENT USING WEBSOCKET
+                    Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+
+                    return;
+                }
+
+                bool isPending = TradingServer.Model.TradingCalculate.Instance.CheckIsPendingPosition(Command.Type.ID);
+                string cmd = string.Empty;
+                if (isPending)
+                {
+                    string typeMT4 = string.Empty;
+                    switch (Command.Type.ID)
+                    {
+                        case 1:
+                            typeMT4 = "0";
+                            break;
+                        case 2:
+                            typeMT4 = "1";
+                            break;
+                        case 7:
+                            typeMT4 = "2";
+                            break;
+                        case 8:
+                            typeMT4 = "3";
+                            break;
+                        case 9:
+                            typeMT4 = "4";
+                            break;
+                        case 10:
+                            typeMT4 = "5";
+                            break;
+                    }
+
+                    cmd = BuildCommandElement5ConnectMT4.Mode.BuildCommand.Instance.ConvertDeletePendingOrderToString(Command.RefCommandID, typeMT4);
+                }
+                else
+                    cmd = BuildCommandElement5ConnectMT4.Mode.BuildCommand.Instance.ConvertCloseCommandToString(Command.RefCommandID, newOpenTrade.ClosePrice, Command.Size);
+
+
+                TradingServer.Model.TradingCalculate.Instance.StreamFile("[Command Send Close] - " + cmd);
+
+                string resultClose = Business.Market.InstanceSocket.SendToMT4(Business.Market.DEFAULT_IPADDRESS, Business.Market.DEFAULT_PORT, cmd);
+                
+                //string resultClose = LibraryAPI.CPPOut.Command(cmd);
+                //string resultClose = Business.Market.InstanceGlobalDelegate.SendCommand(cmd);
+
+                TradingServer.Model.TradingCalculate.Instance.StreamFileSendMT4("[Receive Command Close] - " + resultClose + " Count:" + Business.Market.CountMessageReciveMT4);
+                Business.Market.CountMessageReciveMT4++;
+
+                bool isCloseSuccess = false;
+                string strError = string.Empty;
+
+                if (!string.IsNullOrEmpty(resultClose))
+                {
+                    string[] subValue = resultClose.Split('$');
+                    if (subValue.Length == 2)
+                    {
+                        string[] subParameter = subValue[1].Split('{');
+                        if (int.Parse(subParameter[0]) == 1)
+                            isCloseSuccess = true;
+                        else
+                            isCloseSuccess = false;
+
+                        if (!isCloseSuccess)
+                            strError = subParameter[1];
+                    }
+
+                    if (!isCloseSuccess)
+                    {
+                        #region Map Command Server To Client
+                        if (Command.IsServer)
+                        {
+                            string Message = "CloseCommandByManager$False,CAN'T CLOSE COMMAND FROM MT4," + Command.ID + "," + Command.Investor.InvestorID + "," + Command.Symbol.Name + "," +
+                                Command.Size + "," + true + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," + Command.TakeProfit + "," +
+                                Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + Command.Type.Name + "," +
+                                1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + Command.CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin +
+                                ",Close," + Command.CloseTime;
+
+                            if (Command.Investor.ClientCommandQueue == null)
+                                Command.Investor.ClientCommandQueue = new List<string>();
+
+                            //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                            //if (countInvestorOnline > 0)
+                                Command.Investor.ClientCommandQueue.Add(Message);
+
+                            //SEND COMMAND TO CLIENT USING WEBSOCKET
+                            Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+                        }
+                        else
+                        {
+                            string Message = "CloseCommand$False,CAN'T CLOSE COMMAND FROM MT4," + Command.ID + "," + Command.Investor.InvestorID + "," + Command.Symbol.Name + "," +
+                                Command.Size + "," + true + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," + Command.TakeProfit + "," +
+                                Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + Command.Type.Name + "," +
+                                1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + Command.CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin +
+                                ",Close," + Command.CloseTime;
+
+                            if (Command.Investor.ClientCommandQueue == null)
+                                Command.Investor.ClientCommandQueue = new List<string>();
+
+                            //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                            //if (countInvestorOnline > 0)
+                                Command.Investor.ClientCommandQueue.Add(Message);
+
+                            //SEND COMMAND TO CLIENT USING WEBSOCKET
+                            Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+                        }
+                        #endregion
+                    }
+
+                    //Send Notify to Manager
+                    TradingServer.Facade.FacadeSendNoticeManagerRequest(2, newOpenTrade);
+                }
+                else
+                {
+                    #region Map Command Server To Client
+                    if (Command.IsServer)
+                    {
+                        string Message = "CloseCommandByManager$False,CAN'T CLOSE COMMAND FROM MT4," + Command.ID + "," + Command.Investor.InvestorID + "," + Command.Symbol.Name + "," +
+                            Command.Size + "," + true + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," + Command.TakeProfit + "," +
+                            Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + Command.Type.Name + "," +
+                            1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + Command.CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin +
+                            ",Close," + Command.CloseTime;
+
+                        if (Command.Investor.ClientCommandQueue == null)
+                            Command.Investor.ClientCommandQueue = new List<string>();
+
+                        //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                        //if (countInvestorOnline > 0)
+                            Command.Investor.ClientCommandQueue.Add(Message);
+                    }
+                    else
+                    {
+                        string Message = "CloseCommand$False,CAN'T CLOSE COMMAND FROM MT4," + Command.ID + "," + Command.Investor.InvestorID + "," + Command.Symbol.Name + "," +
+                            Command.Size + "," + true + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," + Command.TakeProfit + "," +
+                            Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + Command.Type.Name + "," +
+                            1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + Command.CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin +
+                            ",Close," + Command.CloseTime;
+
+                        if (Command.Investor.ClientCommandQueue == null)
+                            Command.Investor.ClientCommandQueue = new List<string>();
+
+                        //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                        //if (countInvestorOnline > 0)
+                            Command.Investor.ClientCommandQueue.Add(Message);
+                    }
+                    #endregion
+                }
+            }
+            else
+            {
+                //Call Function Update Command Of Inveestor
+                newOpenTrade.Investor.UpdateCommand(newOpenTrade);
+
+                //Send Notify to Manager
+                TradingServer.Facade.FacadeSendNoticeManagerRequest(2, newOpenTrade);
+            }
+            #endregion
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        public void MultiCloseCommand(OpenTrade Command)
+        {
+            //Check Condition Close Command
+            Business.OpenTrade newOpenTrade = new OpenTrade();
+
+            newOpenTrade.ClientCode = Command.ClientCode;
+            newOpenTrade.ClosePrice = Command.ClosePrice;
+            newOpenTrade.CloseTime = DateTime.Now;
+            newOpenTrade.CommandCode = Command.CommandCode;
+            newOpenTrade.Commission = Command.Commission;
+            newOpenTrade.ExpTime = Command.ExpTime;
+            newOpenTrade.ID = Command.ID;
+            newOpenTrade.IGroupSecurity = Command.IGroupSecurity;
+            newOpenTrade.Investor = Command.Investor;
+            newOpenTrade.IsClose = true;
+            newOpenTrade.IsMultiClose = Command.IsMultiClose;
+            newOpenTrade.IsHedged = Command.IsHedged;
+            newOpenTrade.Margin = Command.Margin;
+            newOpenTrade.OpenPrice = Command.OpenPrice;
+            newOpenTrade.OpenTime = Command.OpenTime;
+            newOpenTrade.Profit = Command.Profit;
+            newOpenTrade.Size = Command.Size;
+            newOpenTrade.StopLoss = Command.StopLoss;
+            newOpenTrade.Swap = Command.Swap;
+            newOpenTrade.Symbol = Command.Symbol;
+            newOpenTrade.TakeProfit = Command.TakeProfit;
+            newOpenTrade.Taxes = Command.Taxes;
+            newOpenTrade.Type = Command.Type;
+            newOpenTrade.IsServer = Command.IsServer;
+            newOpenTrade.AgentCommission = Command.AgentCommission;
+
+            if (string.IsNullOrEmpty(Command.Comment))
+            {
+                newOpenTrade.Comment = "[multi close spot command]";
+            }
+            else
+            {
+                newOpenTrade.Comment = Command.Comment;
+            }
+            
+            //Call Function Update Command Of Inveestor
+            newOpenTrade.Investor.UpdateCommand(newOpenTrade);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        public void MultiUpdateCommand(OpenTrade Command)
+        {
+            #region NEW INSTANCE OPEN TRADE
+            Business.OpenTrade newOpenTrade = new OpenTrade();
+            newOpenTrade.ClientCode = Command.ClientCode;
+            newOpenTrade.ClosePrice = Command.ClosePrice;
+            newOpenTrade.CloseTime = Command.CloseTime;
+            newOpenTrade.CommandCode = Command.CommandCode;
+            newOpenTrade.Commission = Command.Commission;
+            newOpenTrade.ExpTime = Command.ExpTime;
+            newOpenTrade.ID = Command.ID;
+            newOpenTrade.StopLoss = Command.StopLoss;
+            newOpenTrade.TakeProfit = Command.TakeProfit;
+            newOpenTrade.Symbol = Command.Symbol;
+            newOpenTrade.Investor = Command.Investor;
+            newOpenTrade.Type = Command.Type;
+            newOpenTrade.Size = Command.Size;
+            newOpenTrade.IGroupSecurity = Command.IGroupSecurity;
+            newOpenTrade.AgentCommission = Command.AgentCommission;
+            newOpenTrade.Taxes = Command.Taxes;
+            newOpenTrade.OpenPrice = Command.OpenPrice;
+            newOpenTrade.IsMultiUpdate = true;
+
+            if (string.IsNullOrEmpty(Command.Comment))
+            {
+                newOpenTrade.Comment = "[update spot command]";
+            }
+            else
+            {
+                newOpenTrade.Comment = Command.Comment;
+            }
+            #endregion
+
+            newOpenTrade.Investor.UpdateCommand(newOpenTrade);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        public void UpdateCommand(OpenTrade Command)
+        {
+            string content = string.Empty;
+            string comment = "[modify order]";
+            string mode = TradingServer.Facade.FacadeGetTypeNameByTypeID(Command.Type.ID).ToLower();
+
+            string size = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Size.ToString(), 2);
+            string openPrice = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.OpenPrice.ToString(), Command.Symbol.Digit);
+            string stopLoss = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.StopLoss.ToString(), Command.Symbol.Digit);
+            string takeProfit = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.TakeProfit.ToString(), Command.Symbol.Digit);
+            string bid = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Bid.ToString(), Command.Symbol.Digit);
+            string ask = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Ask.ToString(), Command.Symbol.Digit);
+
+            #region NEW INSTANCE OPEN TRADE
+            Business.OpenTrade newOpenTrade = new OpenTrade();
+            newOpenTrade.ClientCode = Command.ClientCode;
+            newOpenTrade.ClosePrice = Command.ClosePrice;
+            newOpenTrade.CloseTime = Command.CloseTime;
+            newOpenTrade.CommandCode = Command.CommandCode;
+            newOpenTrade.Commission = Command.Commission;
+            newOpenTrade.ExpTime = Command.ExpTime;
+            newOpenTrade.ID = Command.ID;
+            newOpenTrade.StopLoss = Command.StopLoss;
+            newOpenTrade.TakeProfit = Command.TakeProfit;
+            newOpenTrade.Symbol = Command.Symbol;
+            newOpenTrade.Investor = Command.Investor;
+            newOpenTrade.Type = Command.Type;
+            newOpenTrade.Size = Command.Size;
+            newOpenTrade.IGroupSecurity = Command.IGroupSecurity;
+            newOpenTrade.AgentCommission = Command.AgentCommission;
+            newOpenTrade.Taxes = Command.Taxes;
+            newOpenTrade.OpenPrice = Command.OpenPrice;
+            newOpenTrade.Comment = Command.Comment;
+            //if (string.IsNullOrEmpty(Command.Comment))
+            //{
+            //    newOpenTrade.Comment = "[update spot command]";
+            //}
+            //else
+            //{
+                
+            //}
+            #endregion
+
+            double TakeProfit = 0;
+            double StopLoss = 0;
+            TakeProfit = Command.TakeProfit;
+            StopLoss = Command.StopLoss;
+
+            #region CONNECT MT4 UPDATE COMMAND
+            if (Business.Market.IsConnectMT4)
+            {
+                if (!Business.Market.StatusConnect)
+                {
+                    string Message = "UpdateCommand$False,DISCONNECT FROM MT4," + Command.ID + "," + Command.Investor.InvestorID + "," + Command.Symbol.Name + "," +
+                                            Command.Size + "," + false + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," + Command.TakeProfit + "," +
+                                            Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + Command.Type.Name + "," +
+                                            1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + Command.CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Update";
+
+                    if (Command.Investor.ClientCommandQueue == null)
+                        Command.Investor.ClientCommandQueue = new List<string>();
+
+                    //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                    //if (countInvestorOnline > 0)
+                        Command.Investor.ClientCommandQueue.Add(Message);
+
+                    TradingServer.Business.Market.marketInstance.SendReponseAsyn(Command,Message);
+                }
+
+                if (StopLoss != 0 || TakeProfit != 0)
+                {
+                    bool ResultTakeProfit = false;
+                    string Message = string.Empty;
+
+                    #region Check Valid Take Profit And Stop Loss
+                    if (Command.Type.ID == 1 || Command.Type.ID == 2)
+                    {
+                        ResultTakeProfit = Command.Symbol.CheckLimitAndStop(Command.Symbol.Name, Command.Type.ID, Command.StopLoss, Command.TakeProfit,
+                                                                            Command.Symbol.StopLossTakeProfitLevel, Command.Symbol.Digit,
+                                                                            int.Parse(Command.SpreaDifferenceInOpenTrade.ToString())); ;
+                    }
+                    else if (Command.Type.ID == 7 || Command.Type.ID == 8 || Command.Type.ID == 9 || Command.Type.ID == 10)
+                    {
+                        ResultTakeProfit = Command.Symbol.CheckLimitAndStopPendingOrder(Command.Symbol.Name, Command.Type.ID, Command.OpenPrice, Command.StopLoss,
+                            Command.TakeProfit, Command.Symbol.StopLossTakeProfitLevel, Command.Symbol.Digit);
+                    }
+
+                    if (ResultTakeProfit == false)
+                    {
+                        bool flagBuy = false;
+                        if (Command.Type.ID == 1 || Command.Type.ID == 7 || Command.Type.ID == 9)
+                            flagBuy = true;
+
+                        Message = "UpdateCommand$False,INVALID S/L OR T/P," + Command.ID + "," + Command.Investor.InvestorID + "," + Command.Symbol.Name + "," +
+                                            Command.Size + "," + flagBuy + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," + Command.TakeProfit + "," +
+                                            Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + Command.Type.Name + "," +
+                                            1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + Command.CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Update";
+
+                        if (Command.Investor.ClientCommandQueue == null)
+                            Command.Investor.ClientCommandQueue = new List<string>();
+
+                        Command.Investor.ClientCommandQueue.Add(Message);
+
+                        TradingServer.Business.Market.marketInstance.SendReponseAsyn(Command, Message);
+
+                        #region INSERT SYSTEM LOG AFTER MODIFY COMMAND
+                        string tempContent = string.Empty;
+                        tempContent = "'" + Command.Investor.Code + "': modified #" + Command.CommandCode + " " + mode + " " + size + " " + Command.Symbol.Name + " at " +
+                            openPrice + " sl: " + stopLoss + " tp: " + takeProfit + " unsuccesful [invalid s/l or t/p] (" + bid + "/" + ask + ")";
+
+                        TradingServer.Facade.FacadeAddNewSystemLog(5, tempContent, comment, Command.Investor.IpAddress, Command.Investor.Code);
+                        #endregion
+
+                        return;
+                    }
+                    #endregion
+
+                    #region Call Check FreezeLevel
+                    if (Command.Type.ID == 1 || Command.Type.ID == 2)
+                    {
+                        ResultTakeProfit = Command.Symbol.CheckLimitAndStop(Command.Symbol.Name, Command.Type.ID, Command.StopLoss, Command.TakeProfit,
+                            Command.Symbol.FreezeLevel, Command.Symbol.Digit, int.Parse(Command.SpreaDifferenceInOpenTrade.ToString()));
+                    }
+                    else if (Command.Type.ID == 7 || Command.Type.ID == 8 || Command.Type.ID == 9 || Command.Type.ID == 10)
+                    {
+                        ResultTakeProfit = Command.Symbol.CheckLimitAndStopPendingOrder(Command.Symbol.Name, Command.Type.ID, Command.OpenPrice, Command.StopLoss,
+                            Command.TakeProfit, Command.Symbol.FreezeLevel, Command.Symbol.Digit);
+                    }
+
+                    if (ResultTakeProfit == false)
+                    {
+                        bool flagBuy = false;
+                        if (Command.Type.ID == 1 || Command.Type.ID == 7 || Command.Type.ID == 9)
+                            flagBuy = true;
+
+                        Message = "UpdateCommand$False,INVALID FREEZE LEVEL," + Command.ID + "," + Command.Investor.InvestorID + "," + Command.Symbol.Name + "," +
+                                            Command.Size + "," + flagBuy + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," + Command.TakeProfit + "," +
+                                            Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + Command.Type.Name + "," +
+                                            1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + Command.CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Update";
+
+                        if (Command.Investor.ClientCommandQueue == null)
+                            Command.Investor.ClientCommandQueue = new List<string>();
+
+                        Command.Investor.ClientCommandQueue.Add(Message);
+
+                        TradingServer.Business.Market.marketInstance.SendReponseAsyn(Command, Message);
+
+                        #region INSERT SYSTEM LOG AFTER MODIFY COMMAND
+                        string tempContent = string.Empty;
+                        tempContent = "'" + Command.Investor.Code + "': modified #" + Command.CommandCode + " " + mode + " " + size + " " + Command.Symbol.Name + " at " +
+                            openPrice + " sl: " + stopLoss + " tp: " + takeProfit + " unsuccesful [invalid freeze level] (" + bid + "/" + ask + ")";
+
+                        TradingServer.Facade.FacadeAddNewSystemLog(5, tempContent, comment, Command.Investor.IpAddress, Command.Investor.Code);
+                        #endregion
+
+                        return;
+                    }
+                    #endregion
+                }
+
+                string cmd = BuildCommandElement5ConnectMT4.Mode.BuildCommand.Instance.ConvertUpdateOnlineCommandToString(Command.RefCommandID, Command.OpenPrice,
+                    Command.StopLoss, Command.TakeProfit, Command.Comment);
+
+                TradingServer.Model.TradingCalculate.Instance.StreamFile("[Command Send] - " + cmd);
+
+                string resultUpdate = Business.Market.InstanceSocket.SendToMT4(Business.Market.DEFAULT_IPADDRESS, Business.Market.DEFAULT_PORT, cmd);
+                
+                //string resultUpdate = LibraryAPI.CPPOut.Command(cmd);
+                //string resultUpdate = Business.Market.InstanceGlobalDelegate.SendCommand(cmd);
+
+                TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Command] - " + resultUpdate);
+
+                bool isUpdateSuccess = false;
+                string strError = string.Empty;
+
+                bool IsBuy = false;
+                if (Command.Type.ID == 1 || Command.Type.ID == 7 || Command.Type.ID == 9)
+                    IsBuy = true;
+
+                if (!string.IsNullOrEmpty(resultUpdate))
+                {
+                    string[] subValue = resultUpdate.Split('$');
+                    if (subValue.Length == 2)
+                    {
+                        string[] subParameter = subValue[1].Split('{');
+                        if (int.Parse(subParameter[0]) == 1)
+                            isUpdateSuccess = true;
+
+                        if (!isUpdateSuccess)
+                            strError = subParameter[1];
+                    }
+
+                    if (!isUpdateSuccess)
+                    {
+                        string Message = "UpdateCommand$False,CAN'T UPDATE COMMAND FROM MT4," + Command.ID + "," +
+                                        Command.Investor.InvestorID + "," +
+                                        Command.Symbol.Name + "," +
+                                        Command.Size + "," + false + "," +
+                                        Command.OpenTime + "," +
+                                        Command.OpenPrice + "," +
+                                        Command.StopLoss + "," +
+                                        Command.TakeProfit + "," +
+                                        Command.ClosePrice + "," +
+                                        Command.Commission + "," +
+                                        Command.Swap + "," +
+                                        Command.Profit + "," + "Comment," +
+                                        Command.ID + "," +
+                                        Command.Type.Name + "," +
+                                        1 + "," + Command.ExpTime + "," +
+                                        Command.ClientCode + "," +
+                                        Command.CommandCode + "," +
+                                        Command.IsHedged + "," +
+                                        Command.Type.ID + "," +
+                                        Command.Margin + ",Update";
+
+                        if (Command.Investor.ClientCommandQueue == null)
+                            Command.Investor.ClientCommandQueue = new List<string>();
+
+                        //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                        //if (countInvestorOnline > 0)
+                            Command.Investor.ClientCommandQueue.Add(Message);
+
+                        //SEND COMMAND TO CLIENT USING WEBSOCKET
+                        Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+                    }
+                }
+                else
+                {
+                    string Message = "UpdateCommand$False,CAN'T UPDATE COMMAND FROM MT4," + Command.ID + "," +
+                                        Command.Investor.InvestorID + "," +
+                                        Command.Symbol.Name + "," +
+                                        Command.Size + "," + false + "," +
+                                        Command.OpenTime + "," +
+                                        Command.OpenPrice + "," +
+                                        Command.StopLoss + "," +
+                                        Command.TakeProfit + "," +
+                                        Command.ClosePrice + "," +
+                                        Command.Commission + "," +
+                                        Command.Swap + "," +
+                                        Command.Profit + "," + "Comment," +
+                                        Command.ID + "," +
+                                        Command.Type.Name + "," +
+                                        1 + "," + Command.ExpTime + "," +
+                                        Command.ClientCode + "," +
+                                        Command.CommandCode + "," +
+                                        Command.IsHedged + "," +
+                                        Command.Type.ID + "," +
+                                        Command.Margin + ",Update";
+
+                    if (Command.Investor.ClientCommandQueue == null)
+                        Command.Investor.ClientCommandQueue = new List<string>();
+
+                    //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                    //if (countInvestorOnline > 0)
+                        Command.Investor.ClientCommandQueue.Add(Message);
+
+                    //SEND COMMAND TO CLIENT USING WEBSOCKET
+                    Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+                }
+            }
+            else
+            {
+                #region Find In List Symbol And Update Take Profit, Stop Loss
+                if (Business.Market.SymbolList != null)
+                {
+                    bool Flag = false;
+                    int count = Business.Market.SymbolList.Count;
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (Flag)
+                            break;
+
+                        if (Business.Market.SymbolList[i].CommandList != null)
+                        {
+                            int countCommand = Business.Market.SymbolList[i].CommandList.Count;
+                            for (int j = 0; j < countCommand; j++)
+                            {
+                                if (Business.Market.SymbolList[i].CommandList[j].ID == Command.ID)
+                                {
+                                    bool ResultTakeProfit = false;
+                                    string Message = string.Empty;
+
+                                    if (StopLoss != 0 || TakeProfit != 0)
+                                    {
+                                        #region Check Valid Take Profit And Stop Loss
+                                        if (Command.Type.ID == 1 || Command.Type.ID == 2)
+                                        {
+                                            ResultTakeProfit = Command.Symbol.CheckLimitAndStop(Command.Symbol.Name, Command.Type.ID, Command.StopLoss, Command.TakeProfit,
+                                                                                                Command.Symbol.StopLossTakeProfitLevel, Command.Symbol.Digit,
+                                                                                                int.Parse(Command.SpreaDifferenceInOpenTrade.ToString())); ;
+                                        }
+                                        else if (Command.Type.ID == 7 || Command.Type.ID == 8 || Command.Type.ID == 9 || Command.Type.ID == 10)
+                                        {
+                                            ResultTakeProfit = Command.Symbol.CheckLimitAndStopPendingOrder(Command.Symbol.Name, Command.Type.ID, Command.OpenPrice, Command.StopLoss,
+                                                Command.TakeProfit, Command.Symbol.StopLossTakeProfitLevel, Command.Symbol.Digit);
+                                        }
+
+                                        if (ResultTakeProfit == false)
+                                        {
+                                            bool IsBuy = false;
+                                            if (Command.Type.ID == 1 || Command.Type.ID == 7 || Command.Type.ID == 9)
+                                                IsBuy = true;
+
+                                            Message = "UpdateCommand$False,INVALID S/L OR T/P," + Command.ID + "," + Command.Investor.InvestorID + "," + Command.Symbol.Name + "," +
+                                                                Command.Size + "," + IsBuy + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," + Command.TakeProfit + "," +
+                                                                Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + Command.Type.Name + "," +
+                                                                1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + Command.CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Update";
+
+                                            if (Command.Investor.ClientCommandQueue == null)
+                                                Command.Investor.ClientCommandQueue = new List<string>();
+
+                                            //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                                            //if (countInvestorOnline > 0)
+                                                Command.Investor.ClientCommandQueue.Add(Message);
+
+                                            //SEND COMMAND TO CLIENT USING WEBSOCKET
+                                            Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+
+                                            #region INSERT SYSTEM LOG AFTER MODIFY COMMAND
+                                            string tempContent = string.Empty;
+                                            tempContent = "'" + Command.Investor.Code + "': modified #" + Command.CommandCode + " " + mode + " " + size + " " + Command.Symbol.Name + " at " +
+                                                openPrice + " sl: " + stopLoss + " tp: " + takeProfit + " unsuccesful [invalid s/l or t/p] (" + bid + "/" + ask + ")";
+
+                                            TradingServer.Facade.FacadeAddNewSystemLog(5, tempContent, comment, Command.Investor.IpAddress, Command.Investor.Code);
+                                            #endregion
+
+                                            return;
+                                        }
+                                        #endregion
+
+                                        #region Call Check FreezeLevel
+                                        if (Command.Type.ID == 1 || Command.Type.ID == 2)
+                                        {
+                                            ResultTakeProfit = Command.Symbol.CheckLimitAndStop(Command.Symbol.Name, Command.Type.ID, Command.StopLoss, Command.TakeProfit,
+                                                Command.Symbol.FreezeLevel, Command.Symbol.Digit, int.Parse(Command.SpreaDifferenceInOpenTrade.ToString()));
+                                        }
+                                        else if (Command.Type.ID == 7 || Command.Type.ID == 8 || Command.Type.ID == 9 || Command.Type.ID == 10)
+                                        {
+                                            ResultTakeProfit = Command.Symbol.CheckLimitAndStopPendingOrder(Command.Symbol.Name, Command.Type.ID, Command.OpenPrice, Command.StopLoss,
+                                                Command.TakeProfit, Command.Symbol.FreezeLevel, Command.Symbol.Digit);
+                                        }
+
+                                        if (ResultTakeProfit == false)
+                                        {
+                                            bool IsBuy = false;
+                                            if (Command.Type.ID == 1 || Command.Type.ID == 7 || Command.Type.ID == 9)
+                                                IsBuy = true;
+
+                                            Message = "UpdateCommand$False,INVALID FREEZE LEVEL," + Command.ID + "," + Command.Investor.InvestorID + "," + Command.Symbol.Name + "," +
+                                                                Command.Size + "," + IsBuy + "," + Command.OpenTime + "," + Command.OpenPrice + "," + Command.StopLoss + "," + Command.TakeProfit + "," +
+                                                                Command.ClosePrice + "," + Command.Commission + "," + Command.Swap + "," + Command.Profit + "," + "Comment," + Command.ID + "," + Command.Type.Name + "," +
+                                                                1 + "," + Command.ExpTime + "," + Command.ClientCode + "," + Command.CommandCode + "," + Command.IsHedged + "," + Command.Type.ID + "," + Command.Margin + ",Update";
+
+                                            if (Command.Investor.ClientCommandQueue == null)
+                                                Command.Investor.ClientCommandQueue = new List<string>();
+
+                                            //int countInvestorOnline = Command.Investor.CountInvestorOnline(Command.Investor.InvestorID);
+                                            //if (countInvestorOnline > 0)
+                                                Command.Investor.ClientCommandQueue.Add(Message);
+
+                                            //SEND COMMAND TO CLIENT USING WEBSOCKET
+                                            Business.Market.marketInstance.SendReponseAsyn(Command.Investor, Message);
+
+                                            #region INSERT SYSTEM LOG AFTER MODIFY COMMAND
+                                            string tempContent = string.Empty;
+                                            tempContent = "'" + Command.Investor.Code + "': modified #" + Command.CommandCode + " " + mode + " " + size + " " + Command.Symbol.Name + " at " +
+                                                openPrice + " sl: " + stopLoss + " tp: " + takeProfit + " unsuccesful [invalid freeze level] (" + bid + "/" + ask + ")";
+
+                                            TradingServer.Facade.FacadeAddNewSystemLog(5, tempContent, comment, Command.Investor.IpAddress, Command.Investor.Code);
+                                            #endregion
+
+                                            return;
+                                        }
+                                        #endregion
+                                    }
+
+                                    if (Business.Market.SymbolList[i].CommandList[j].StopLoss != Command.StopLoss ||
+                                        Business.Market.SymbolList[i].CommandList[j].TakeProfit != Command.TakeProfit)
+                                    {
+                                        Business.Market.SymbolList[i].CommandList[j].StopLoss = StopLoss;
+                                        Business.Market.SymbolList[i].CommandList[j].TakeProfit = TakeProfit;
+                                        Business.Market.SymbolList[i].CommandList[j].Comment = newOpenTrade.Comment;
+                                    }
+
+                                    if (Business.Market.SymbolList[i].CommandList[j].Type.ID == 7 ||
+                                        Business.Market.SymbolList[i].CommandList[j].Type.ID == 8 ||
+                                        Business.Market.SymbolList[i].CommandList[j].Type.ID == 9 ||
+                                        Business.Market.SymbolList[i].CommandList[j].Type.ID == 10)
+                                    {
+                                        if (Business.Market.SymbolList[i].CommandList[j].OpenPrice != Command.OpenPrice)
+                                        {
+                                            Business.Market.SymbolList[i].CommandList[j].OpenPrice = Command.OpenPrice;
+                                        }
+                                    }
+
+                                    //Set Close Prices
+                                    newOpenTrade.ClosePrice = Business.Market.SymbolList[i].CommandList[j].ClosePrice;
+                                    //newOpenTrade.Profit = Business.Market.SymbolList[i].CommandList[j].Profit;
+
+                                    #region INSERT SYSTEM LOG AFTER MODIFY COMMAND
+                                    string Content = string.Empty;
+                                    Content = "'" + Command.Investor.Code + "': modified #" + Command.CommandCode + " " + mode + " " + size + " " + Command.Symbol.Name + " at " +
+                                        openPrice + " sl: " + stopLoss + " tp: " + takeProfit + " (" + bid + "/" + ask + ")";
+
+                                    TradingServer.Facade.FacadeAddNewSystemLog(5, Content, comment, Command.Investor.IpAddress, Command.Investor.Code);
+                                    #endregion
+
+                                    TradingServer.Facade.FacadeUpdateOnlineCommandWithTakeProfit(TakeProfit, StopLoss, Command.ID, Command.Comment, Command.OpenPrice);
+
+                                    #region MAP COMMAND TO CLIENT
+                                    Message = "UpdateCommand$True,UPDATE COMMAND COMPLETE," + Command.ID + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].Investor.InvestorID + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].Symbol.Name + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].Size + "," + false + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].OpenTime + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].OpenPrice + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].StopLoss + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].TakeProfit + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].ClosePrice + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].Commission + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].Swap + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].Profit + "," + "Comment," +
+                                        Business.Market.SymbolList[i].CommandList[j].ID + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].Type.Name + "," +
+                                        1 + "," + Business.Market.SymbolList[i].CommandList[j].ExpTime + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].ClientCode + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].CommandCode + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].IsHedged + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].Type.ID + "," +
+                                        Business.Market.SymbolList[i].CommandList[j].Margin + ",Update";
+
+                                    //If Client Update Command Then Add Message To Client Message
+                                    if (Business.Market.SymbolList[i].CommandList[j].Investor.ClientCommandQueue == null)
+                                        Business.Market.SymbolList[i].CommandList[j].Investor.ClientCommandQueue = new List<string>();
+
+                                    //int countInvestor = Business.Market.SymbolList[i].CommandList[j].Investor.CountInvestorOnline(Business.Market.SymbolList[i].CommandList[j].Investor.InvestorID);
+                                    //if (countInvestor > 0)
+                                        Business.Market.SymbolList[i].CommandList[j].Investor.ClientCommandQueue.Add(Message);
+
+                                    //SEND COMMAND TO CLIENT USING WEBSOCKET
+                                    Business.Market.marketInstance.SendReponseAsyn(Business.Market.SymbolList[i].CommandList[j].Investor, Message);
+                                    #endregion
+
+                                    //SEND NOTIFY TO AGENT SERVER
+                                    Message += "," + Business.Market.SymbolList[i].CommandList[j].AgentRefConfig + "," + 
+                                        Business.Market.SymbolList[i].CommandList[j].SpreaDifferenceInOpenTrade;
+                                    Business.AgentNotify newAgentNotify = new AgentNotify();
+                                    newAgentNotify.NotifyMessage = Message;
+                                    TradingServer.Agent.AgentConfig.Instance.AddNotifyToAgent(newAgentNotify, Business.Market.SymbolList[i].CommandList[j].Investor.InvestorGroupInstance
+                                        );
+
+                                    Flag = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                #endregion
+
+                #region FIND IN LIST COMMAND EXECUTOR AND UPDATE TAKE PROFIT , STOP LOSS
+                if (Business.Market.CommandExecutor != null)
+                {
+                    int count = Business.Market.CommandExecutor.Count;
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (Business.Market.CommandExecutor[i].ID == Command.ID)
+                        {
+                            if (Business.Market.CommandExecutor[i].TakeProfit != Command.TakeProfit ||
+                                Business.Market.CommandExecutor[i].StopLoss != Command.StopLoss)
+                            {
+                                Business.Market.CommandExecutor[i].TakeProfit = TakeProfit;
+                                Business.Market.CommandExecutor[i].StopLoss = StopLoss;
+                                Business.Market.CommandExecutor[i].Comment = newOpenTrade.Comment;
+                                break;
+                            }
+
+                            if (Business.Market.CommandExecutor[i].Type.ID == 7 ||
+                                Business.Market.CommandExecutor[i].Type.ID == 8 ||
+                                Business.Market.CommandExecutor[i].Type.ID == 9 ||
+                                Business.Market.CommandExecutor[i].Type.ID == 10)
+                            {
+                                if (Business.Market.CommandExecutor[i].OpenPrice != Command.OpenPrice)
+                                {
+                                    Business.Market.CommandExecutor[i].OpenPrice = Command.OpenPrice;
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+                }
+                #endregion
+
+                Command.Investor.UpdateCommand(newOpenTrade);
+            }
+            #endregion
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        /// <returns></returns>
+        public IPresenter.CloseCommandDelegate CloseCommandNotify(OpenTrade Command)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Cmd"></param>
+        /// <returns></returns>
+        public IPresenter.SendClientCmdDelegate SendClientCmdDelegate(string Cmd)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="initStatus"></param>
+        /// <returns></returns>
+        public IPresenter.InitServerDelegate CheckStatusInitServer(InitStatus initStatus)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Tick"></param>
+        /// <param name="RefSymbol"></param>
+        public void SetTickValueNotify(Tick Tick, Symbol RefSymbol)
+        {
+            NumCheck++;
+            if (NumCheck == 100)
+                NumCheck = 0;
+
+            #region Process Command List
+            //Call Function Calculate Command 
+            if (RefSymbol.CommandList != null && RefSymbol.CommandList.Count > 0)
+            {
+                int count = RefSymbol.CommandList.Count;
+                //for (int i = 0; i < RefSymbol.CommandList.Count; i++)
+                for (int i = count - 1; i >= 0; i--)
+                {
+                    if (RefSymbol.CommandList[i].IsClose == true)
+                        continue;
+
+                    //if (RefSymbol.CommandList[i].IsProcess)
+                    //    continue;
+
+                    #region Switch Condition Type
+                    //Set Close Price For Command     
+                    switch (RefSymbol.CommandList[i].Type.ID)
+                    {
+                        case 1: //Spot Buy Command                    
+                            RefSymbol.CommandList[i].ClosePrice = Tick.Bid;
+                            break;
+
+                        case 2: //Spot Sell Command                     
+                            double Ask = 0;
+                            Ask = (Symbol.ConvertNumberPip(RefSymbol.CommandList[i].Symbol.Digit, RefSymbol.CommandList[i].SpreaDifferenceInOpenTrade) + Tick.Ask);
+                            RefSymbol.CommandList[i].ClosePrice = Ask;
+                            break;
+
+                        case 7: //Buy Limit Command
+                            double AskBuyLimit = 0;
+                            AskBuyLimit = (Symbol.ConvertNumberPip(RefSymbol.CommandList[i].Symbol.Digit, RefSymbol.CommandList[i].SpreaDifferenceInOpenTrade) + Tick.Ask);
+                            RefSymbol.CommandList[i].ClosePrice = AskBuyLimit;
+                            break;
+
+                        case 8: //Sell Limit Command                            
+                            RefSymbol.CommandList[i].ClosePrice = Tick.Bid;
+                            break;
+
+                        case 9: //Buy Stop Command
+                            double AskBuyStop = 0;
+                            AskBuyStop = (Symbol.ConvertNumberPip(RefSymbol.CommandList[i].Symbol.Digit, RefSymbol.CommandList[i].SpreaDifferenceInOpenTrade) + Tick.Ask);
+                            RefSymbol.CommandList[i].ClosePrice = AskBuyStop;
+                            break;
+
+                        case 10:    //Sell Stop Command                            
+                            RefSymbol.CommandList[i].ClosePrice = Tick.Bid;
+                            break;
+                    }
+                    #endregion
+
+                    //Call Function Calculator Command
+                    Business.OpenTrade newOpenTrade = new OpenTrade();
+                    newOpenTrade = this.CalculateCommand(RefSymbol.CommandList[i]);
+
+                    #region COMMENT CODE BECAUSE PENDING DON'T ACTIVE(15/07/2011)
+                    //if (RefSymbol.CommandList[i].Type.ID != newOpenTrade.Type.ID)
+                    //{
+                    //    if (newOpenTrade.Type != null)
+                    //    {
+                    //        RefSymbol.CommandList[i].Type = new TradeType();
+                    //        RefSymbol.CommandList[i].Type.ID = newOpenTrade.Type.ID;
+                    //        RefSymbol.CommandList[i].Type.Name = newOpenTrade.Type.Name;
+
+                    //        //RefSymbol.CommandList[i].Type = newOpenTrade.Type;
+                    //    }
+                    //}
+                    #endregion
+
+                    if (newOpenTrade.IsClose == true)
+                        RefSymbol.CommandList[i].IsClose = true;
+
+                    if (RefSymbol.CommandList[i].Investor.CommandList.Count > 0 && RefSymbol.CommandList[i].Investor.CommandList != null)
+                    {
+                        RefSymbol.CommandList[i].Investor.UpdateCommand(newOpenTrade);
+                    }
+                }
+            } 
+            #endregion    
+
+            Facade.FacadeCalculationAlert(Tick, RefSymbol);
+        }       
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        /// <returns></returns>
+        public OpenTrade CalculateCommand(OpenTrade Command)
+        {
+            Business.OpenTrade newOpenTrade = new OpenTrade();
+            newOpenTrade.ClientCode = Command.ClientCode;            
+            newOpenTrade.CloseTime = Command.CloseTime;            
+            newOpenTrade.ExpTime = Command.ExpTime;
+            newOpenTrade.ID = Command.ID;
+            newOpenTrade.Investor = Command.Investor;
+            newOpenTrade.IsClose = Command.IsClose;
+            newOpenTrade.OpenPrice = Command.OpenPrice;
+            newOpenTrade.OpenTime = Command.OpenTime;
+            newOpenTrade.Size = Command.Size;
+            newOpenTrade.StopLoss = Command.StopLoss;
+            newOpenTrade.Swap = Command.Swap;
+            newOpenTrade.Symbol = Command.Symbol;
+            newOpenTrade.TakeProfit = Command.TakeProfit;
+            newOpenTrade.Type = new TradeType();
+            newOpenTrade.Type.ID = Command.Type.ID;
+            newOpenTrade.Type.Name = Command.Type.Name;
+            //newOpenTrade.Type = Command.Type;
+            newOpenTrade.ClosePrice = Command.ClosePrice;
+            newOpenTrade.Margin = Command.Margin;
+            newOpenTrade.CommandCode = Command.CommandCode;
+            newOpenTrade.Commission = Command.Commission;
+            newOpenTrade.IGroupSecurity = Command.IGroupSecurity;
+            newOpenTrade.AgentRefConfig = Command.AgentRefConfig;
+
+            switch (newOpenTrade.Type.ID)
+            {
+                #region Case Buy Spot Command
+                case 1:
+                    {
+                        #region COMMENT CODE
+                        if (newOpenTrade.TakeProfit != 0)
+                        {
+                            if (Command.ClosePrice >= newOpenTrade.TakeProfit)
+                            {
+                                //call function close command         
+                                newOpenTrade.IsClose = true;
+                                newOpenTrade.CloseTime = DateTime.Now;
+                                newOpenTrade.ClosePrice = Command.TakeProfit;
+                                newOpenTrade.IsActivePending = false;
+                                newOpenTrade.IsStopLossAndTakeProfit = true;
+
+                                //Calculator Profit Of Command                        
+                                newOpenTrade.CalculatorProfitCommand(newOpenTrade);
+                                newOpenTrade.Profit = newOpenTrade.Symbol.ConvertCurrencyToUSD(newOpenTrade.Symbol.Currency, newOpenTrade.Profit, false,
+                                                        newOpenTrade.SpreaDifferenceInOpenTrade, newOpenTrade.Symbol.Digit);
+
+                                //send notify to manage if command SL/TP
+                                TradingServer.Facade.FacadeSendNoticeManagerRequest(2, newOpenTrade);
+
+                                #region INSERT SYSTEM LOG (EVENT TAKE PROFIT)
+                                //INSERT SYSTEM LOG(EVENT TAKE PROFIT)
+                                string size = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Size.ToString(), 2);
+                                string takeProfit = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.TakeProfit.ToString(), Command.Symbol.Digit);
+                                string bid = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Bid.ToString(), Command.Symbol.Digit);
+                                string ask = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Ask.ToString(), Command.Symbol.Digit);
+
+                                string content = "'server-" + Command.Investor.Code + "': take profit #" + Command.CommandCode + " at " + takeProfit + " (" + bid + "/" + ask + ")";
+                                TradingServer.Facade.FacadeAddNewSystemLog(5, content, "[take profit]", "", Command.Investor.Code);
+                                #endregion
+
+                                break;
+                            }
+                        }
+
+                        if (newOpenTrade.StopLoss != 0)
+                        {
+                            if (Command.ClosePrice <= newOpenTrade.StopLoss)
+                            {
+                                //call function close command
+                                newOpenTrade.IsClose = true;
+                                newOpenTrade.CloseTime = DateTime.Now;
+                                newOpenTrade.ClosePrice = Command.StopLoss;
+                                newOpenTrade.IsActivePending = false;
+                                newOpenTrade.IsStopLossAndTakeProfit = true;
+
+                                //Calculator Profit Of Command                        
+                                newOpenTrade.CalculatorProfitCommand(newOpenTrade);
+                                newOpenTrade.Profit = newOpenTrade.Symbol.ConvertCurrencyToUSD(newOpenTrade.Symbol.Currency, newOpenTrade.Profit, false, newOpenTrade.SpreaDifferenceInOpenTrade, newOpenTrade.Symbol.Digit);
+
+                                //send notify to manage if command SL/TP
+                                TradingServer.Facade.FacadeSendNoticeManagerRequest(2, newOpenTrade);
+
+                                #region INSERT SYSTEM LOG (EVENT STOP LOSS)
+                                //INSERT SYSTEM LOG(EVENT TAKE PROFIT)
+                                string size = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Size.ToString(), 2);
+                                string stoploss = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.StopLoss.ToString(), Command.Symbol.Digit);
+                                string bid = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Bid.ToString(), Command.Symbol.Digit);
+                                string ask = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Ask.ToString(), Command.Symbol.Digit);
+
+                                string content = "'server-" + Command.Investor.Code + "': stop loss #" + Command.CommandCode + " at " + stoploss + " (" + bid + "/" + ask + ")";
+                                TradingServer.Facade.FacadeAddNewSystemLog(5, content, "[stop loss]", "", Command.Investor.Code);
+                                #endregion
+
+                                break;
+                            }
+                        }
+
+                        //=================================
+
+                        //Calculator Profit Of Command                        
+                        //newOpenTrade.CalculatorProfitCommand(newOpenTrade);
+                        //newOpenTrade.Profit = newOpenTrade.Symbol.ConvertCurrencyToUSD(newOpenTrade.Symbol.Currency, newOpenTrade.Profit, false, 
+                        //    newOpenTrade.SpreaDifferenceInOpenTrade, newOpenTrade.Symbol.Digit);
+                        #endregion
+                    }
+                    break;
+                #endregion                
+
+                #region Case Sell Spot Command
+                case 2:
+                    {
+                        #region COMMENT CODE
+                        if (newOpenTrade.TakeProfit != 0)
+                        {
+                            if (Command.ClosePrice <= newOpenTrade.TakeProfit)
+                            {
+                                //call Function Close Command
+                                newOpenTrade.IsClose = true;
+                                newOpenTrade.CloseTime = DateTime.Now;
+                                newOpenTrade.ClosePrice = Command.TakeProfit;
+                                newOpenTrade.IsActivePending = false;
+                                newOpenTrade.IsStopLossAndTakeProfit = true;
+
+                                //Calculator Profit Of Command
+                                newOpenTrade.CalculatorProfitCommand(newOpenTrade);
+                                newOpenTrade.Profit = newOpenTrade.Symbol.ConvertCurrencyToUSD(newOpenTrade.Symbol.Currency, newOpenTrade.Profit, false, newOpenTrade.SpreaDifferenceInOpenTrade, newOpenTrade.Symbol.Digit);
+
+                                //send notify to manage if command SL/TP
+                                TradingServer.Facade.FacadeSendNoticeManagerRequest(2, newOpenTrade);
+
+                                //INSERT SYSTEM LOG
+                                #region INSERT SYSTEM LOG (EVENT TAKE PROFIT)
+                                //INSERT SYSTEM LOG(EVENT TAKE PROFIT)
+                                string size = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Size.ToString(), 2);
+                                string takeProfit = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.TakeProfit.ToString(), Command.Symbol.Digit);
+                                string bid = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Bid.ToString(), Command.Symbol.Digit);
+                                string ask = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Ask.ToString(), Command.Symbol.Digit);
+
+                                string content = "'server-" + Command.Investor.Code + "': take profit #" + Command.CommandCode + " at " + takeProfit + " (" + bid + "/" + ask + ")";
+                                TradingServer.Facade.FacadeAddNewSystemLog(5, content, "[take profit]", "", Command.Investor.Code);
+                                #endregion
+
+                                break;
+                            }
+                        }
+
+                        if (newOpenTrade.StopLoss != 0)
+                        {
+                            if (Command.ClosePrice >= newOpenTrade.StopLoss)
+                            {
+                                //call function close command
+                                newOpenTrade.IsClose = true;
+                                newOpenTrade.CloseTime = DateTime.Now;
+                                newOpenTrade.ClosePrice = Command.StopLoss;
+                                newOpenTrade.IsActivePending = false;
+                                newOpenTrade.IsStopLossAndTakeProfit = true;
+
+                                //Calculator Profit Of Command
+                                newOpenTrade.CalculatorProfitCommand(newOpenTrade);
+                                newOpenTrade.Profit = newOpenTrade.Symbol.ConvertCurrencyToUSD(newOpenTrade.Symbol.Currency, newOpenTrade.Profit, false, newOpenTrade.SpreaDifferenceInOpenTrade, newOpenTrade.Symbol.Digit);
+
+                                //send notify to manage if command SL/TP
+                                TradingServer.Facade.FacadeSendNoticeManagerRequest(2, newOpenTrade);
+
+                                #region INSERT SYSTEM LOG (EVENT TAKE PROFIT)
+                                //INSERT SYSTEM LOG(EVENT TAKE PROFIT)
+                                string size = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Size.ToString(), 2);
+                                string stopLoss = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.StopLoss.ToString(), Command.Symbol.Digit);
+                                string bid = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Bid.ToString(), Command.Symbol.Digit);
+                                string ask = TradingServer.Model.TradingCalculate.Instance.BuildStringWithDigit(Command.Symbol.TickValue.Ask.ToString(), Command.Symbol.Digit);
+
+                                string content = "'server-" + Command.Investor.Code + "': stop loss #" + Command.CommandCode + " at " + stopLoss + " (" + bid + "/" + ask + ")";
+                                TradingServer.Facade.FacadeAddNewSystemLog(5, content, "[stop loss]", "", Command.Investor.Code);
+                                #endregion
+
+                                break;
+                            }
+                        }
+
+
+                        //========================
+                        //Calculator Profit Of Command
+                        //newOpenTrade.CalculatorProfitCommand(newOpenTrade);                        
+                        //newOpenTrade.Profit = newOpenTrade.Symbol.ConvertCurrencyToUSD(newOpenTrade.Symbol.Currency, newOpenTrade.Profit, false, 
+                        //    newOpenTrade.SpreaDifferenceInOpenTrade, newOpenTrade.Symbol.Digit);
+                        #endregion
+                    }
+                    break;
+                #endregion                
+
+                #region Case Buy Limit Command
+                case 7:
+                    {
+                        if (Command.ClosePrice <= newOpenTrade.OpenPrice)
+                        {
+                            newOpenTrade.IsActivePending = true;
+                            newOpenTrade.IsStopLossAndTakeProfit = false;
+
+                            TradingServer.Facade.FacadeFindDealerActivePendingRequest(newOpenTrade);
+
+                            #region COMMENT CODE(BECAUSE PENDING ORDER ACTIVE FROM DEALER) 11/05/2012
+                            //newOpenTrade.OpenTime = DateTime.Now;(COMMENT BECAUSE FIX ERROR ACTIVE PENDING ORDER BUT ENOUGH MONEY)
+
+                            //newOpenTrade.OpenPrice = Command.ClosePrice;
+
+                            //int count = newOpenTrade.Symbol.MarketAreaRef.Type.Count;
+                            //for (int i = 0; i < count; i++)
+                            //{
+                            //    if (newOpenTrade.Symbol.MarketAreaRef.Type[i].ID == 1)
+                            //    {
+                            //        newOpenTrade.Type = new TradeType();
+                            //        newOpenTrade.Type.ID = newOpenTrade.Symbol.MarketAreaRef.Type[i].ID;
+                            //        newOpenTrade.Type.Name = newOpenTrade.Symbol.MarketAreaRef.Type[i].Name;
+                            //        //newOpenTrade.Type = newOpenTrade.Symbol.MarketAreaRef.Type[i];
+
+                            //        //SYSTEM LOG ACTIVATE PENDING ORDER 
+                            //        string content = string.Empty;
+                            //        content = "'server: '" + "pending buy limit order #" + newOpenTrade.CommandCode + " triggered";
+                            //        TradingServer.Facade.FacadeAddNewSystemLog(5, content, "[pending order triggered]", "", newOpenTrade.Investor.Code);
+
+                            //        break;
+                            //    }
+                            //}
+                            #endregion
+                        }
+                    }
+                    break;
+                #endregion
+
+                #region Case Sell Limit Command
+                case 8:
+                    {   
+                        if (newOpenTrade.ClosePrice >= newOpenTrade.OpenPrice)
+                        {
+                            newOpenTrade.IsActivePending = true;
+                            newOpenTrade.IsStopLossAndTakeProfit = false;
+
+                            TradingServer.Facade.FacadeFindDealerActivePendingRequest(newOpenTrade);
+
+                            #region COMMENT CODE(BECAUSE PENDING ORDER ACTIVE FROM DEALER) 11/05/2012
+                            //Make sell command
+                            //newOpenTrade.OpenTime = DateTime.Now;
+
+                            //newOpenTrade.OpenPrice = Command.ClosePrice;
+
+                            //int count = newOpenTrade.Symbol.MarketAreaRef.Type.Count;
+                            //for (int i = 0; i < count; i++)
+                            //{
+                            //    if (newOpenTrade.Symbol.MarketAreaRef.Type[i].ID == 2)
+                            //    {
+                            //        newOpenTrade.Type = new TradeType();
+                            //        newOpenTrade.Type.ID = newOpenTrade.Symbol.MarketAreaRef.Type[i].ID;
+                            //        newOpenTrade.Type.Name = newOpenTrade.Symbol.MarketAreaRef.Type[i].Name;
+                            //        //newOpenTrade.Type = newOpenTrade.Symbol.MarketAreaRef.Type[i];
+
+                            //        //SYSTEM LOG ACTIVATE PENDING ORDER 
+                            //        string content = string.Empty;
+                            //        content = "'server: '" + "pending sell limit order #" + newOpenTrade.CommandCode + " triggered";
+                            //        TradingServer.Facade.FacadeAddNewSystemLog(5, content, "[pending order triggered]", "", newOpenTrade.Investor.Code);
+
+                            //        break;
+                            //    }
+                            //}
+                            #endregion  
+                        }                        
+                    }
+                    break;
+                #endregion
+
+                #region Case Buy Stop Command
+                case 9:
+                    {   
+                        if (newOpenTrade.ClosePrice >= newOpenTrade.OpenPrice)
+                        {
+                            newOpenTrade.IsActivePending = true;
+                            newOpenTrade.IsStopLossAndTakeProfit = false;
+
+                            TradingServer.Facade.FacadeFindDealerActivePendingRequest(newOpenTrade);
+
+                            #region COMMENT CODE(BECAUSE PENDING ORDER ACTIVE FROM DEALER) 11/05/2012
+                            //Make sell command
+                            //newOpenTrade.OpenTime = DateTime.Now;                            
+
+                            //int count = newOpenTrade.Symbol.MarketAreaRef.Type.Count;
+                            //for (int i = 0; i < count; i++)
+                            //{
+                            //    if (newOpenTrade.Symbol.MarketAreaRef.Type[i].ID == 1)
+                            //    {
+                            //        newOpenTrade.Type = new TradeType();
+                            //        newOpenTrade.Type.ID = newOpenTrade.Symbol.MarketAreaRef.Type[i].ID;
+                            //        newOpenTrade.Type.Name = newOpenTrade.Symbol.MarketAreaRef.Type[i].Name;
+                            //        //newOpenTrade.Type = newOpenTrade.Symbol.MarketAreaRef.Type[i];
+
+                            //        //SYSTEM LOG ACTIVATE PENDING ORDER 
+                            //        string content = string.Empty;
+                            //        content = "'server: '" + "pending buy stop order #" + newOpenTrade.CommandCode + " triggered";
+                            //        TradingServer.Facade.FacadeAddNewSystemLog(1, content, "[pending order triggered]", "", newOpenTrade.Investor.Code);
+
+                            //        break;
+                            //    }
+                            //}
+                            #endregion
+                        }                        
+                    }
+                    break;
+                #endregion
+
+                #region Case Sell Stop Command
+                case 10:
+                    {   
+                        if (newOpenTrade.ClosePrice <= newOpenTrade.OpenPrice)
+                        {
+                            newOpenTrade.IsActivePending = true;
+                            newOpenTrade.IsStopLossAndTakeProfit = false;
+
+                            TradingServer.Facade.FacadeFindDealerActivePendingRequest(newOpenTrade);
+
+                            #region COMMENT CODE(BECAUSE PENDING ORDER ACTIVE FROM DEALER) 11/05/2012
+                            //Make sell command
+                            //newOpenTrade.OpenTime = DateTime.Now;
+
+                            //newOpenTrade.OpenPrice = Command.ClosePrice;
+
+                            //int count = newOpenTrade.Symbol.MarketAreaRef.Type.Count;
+                            //for (int i = 0; i < count; i++)
+                            //{
+                            //    if (newOpenTrade.Symbol.MarketAreaRef.Type[i].ID == 2)
+                            //    {
+                            //        newOpenTrade.Type = new TradeType();
+                            //        newOpenTrade.Type.ID = newOpenTrade.Symbol.MarketAreaRef.Type[i].ID;
+                            //        newOpenTrade.Type.Name = newOpenTrade.Symbol.MarketAreaRef.Type[i].Name;
+                            //        //newOpenTrade.Type = newOpenTrade.Symbol.MarketAreaRef.Type[i];
+
+                            //        //SYSTEM LOG ACTIVATE PENDING ORDER 
+                            //        string content = string.Empty;
+                            //        content = "'server: '" + "pending sell stop order #" + newOpenTrade.CommandCode + " triggered";
+                            //        TradingServer.Facade.FacadeAddNewSystemLog(5, content, "[pending order triggered]", "", newOpenTrade.Investor.Code);
+
+                            //        break;
+                            //    }
+                            //}
+                            #endregion
+                        }
+                    }
+                    break;
+                #endregion
+
+                #region DEFAULT
+                default:
+                    {
+                        if (newOpenTrade.Type == null)
+                            TradingServer.Facade.FacadeAddNewSystemLog(1, "[type command is empty]", "[check type command]", "", newOpenTrade.CommandCode);
+                        else
+                            TradingServer.Facade.FacadeAddNewSystemLog(1, "[type command incorect] " + newOpenTrade.Type.ID, "[check type command]", "", newOpenTrade.CommandCode);
+                    }
+                    break;
+                #endregion
+            }
+
+            return newOpenTrade;
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="InvestorID"></param>
+        /// <returns></returns>
+        public List<Business.OpenTrade> GetOpenTradeByInvestor(int InvestorID)
+        {
+            List<Business.OpenTrade> Result = new List<OpenTrade>();
+            if (Business.Market.InvestorList != null)
+            {
+                int count = Business.Market.InvestorList.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (Business.Market.InvestorList[i].InvestorID == InvestorID)
+                    {
+                        Result = Business.Market.InvestorList[i].CommandList;
+
+                        break;
+                    }
+                }
+            }
+
+            return Result;
+        }
+    }
+}

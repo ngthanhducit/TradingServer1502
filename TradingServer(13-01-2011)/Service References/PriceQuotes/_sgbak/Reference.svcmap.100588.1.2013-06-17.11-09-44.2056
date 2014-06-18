@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="faf0f5af-721b-48c9-b591-d9d030196f14" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://tradingwcf.sycomore.co.uk/pricequotes.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="PriceQuotes.wsdl" MetadataType="Wsdl" ID="9499795f-ae94-4836-8291-1e2c26bdea05" SourceId="1" SourceUrl="http://tradingwcf.sycomore.co.uk/PriceQuotes.svc?wsdl" />
+    <MetadataFile FileName="PriceQuotes.xsd" MetadataType="Schema" ID="1ae96676-783f-47b8-8618-5787fdea6350" SourceId="1" SourceUrl="http://tradingwcf.sycomore.co.uk/PriceQuotes.svc?xsd=xsd0" />
+    <MetadataFile FileName="PriceQuotes1.xsd" MetadataType="Schema" ID="990cafa8-16b6-448b-8e5b-7e67f81e6bec" SourceId="1" SourceUrl="http://tradingwcf.sycomore.co.uk/PriceQuotes.svc?xsd=xsd1" />
+    <MetadataFile FileName="PriceQuotes2.xsd" MetadataType="Schema" ID="81e75208-eca0-43e7-b02c-743845192903" SourceId="1" SourceUrl="http://tradingwcf.sycomore.co.uk/PriceQuotes.svc?xsd=xsd2" />
+    <MetadataFile FileName="PriceQuotes.disco" MetadataType="Disco" ID="2cd7dde1-469b-4c66-b53c-8772ab9a3373" SourceId="1" SourceUrl="http://tradingwcf.sycomore.co.uk/PriceQuotes.svc?disco" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

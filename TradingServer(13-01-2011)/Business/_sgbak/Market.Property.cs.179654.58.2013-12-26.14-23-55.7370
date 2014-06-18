@@ -1,0 +1,299 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Timers;
+
+namespace TradingServer.Business
+{
+    public partial class Market : IPresenter.IMarketArea, IPresenter.ICommand
+    {
+        #region PROPERTY WCF    
+        public static Trading.TradingWCFClient client;
+        public static PriceQuotes.PriceQuotesClient clientQuote;
+        public static AgentWCF.DefaultWCFClient clientDefault;
+        #endregion
+
+        #region Property Implement From Class Market
+        //Using Check Tick From Client Tick To Server
+        public static bool isFlagInitMarket = false;
+        internal static int SecurityTickClient = 0;        
+        internal static List<Business.ParameterItem> MarketConfig { get; set; }        
+        internal static List<Business.OpenTrade> CommandExecutor { get; set; }
+        internal static List<Business.OpenTrade> PendingOrders { get; set; }
+        internal static List<Business.Investor> InvestorList { get; set; }
+        internal static List<Business.Agent> AgentList { get; set; }
+        internal static List<Business.Agent> AdminList { get; set; }
+        internal static List<Business.News> NewsList { get; set; }
+        internal static List<Business.RequestDealer> ListRequestDealer { get; set; }
+        internal static List<Business.RequestDealer> ListQueueCompare { get; set; }
+        public static bool IsOpen { get; set; }
+        internal static bool IsTickUpdate { get; set; }
+        internal static List<Business.QuoteSymbol> QuoteList { get; set; }
+        internal static List<Business.InvestorGroup> InvestorGroupList { get; set; }
+        internal static List<Business.Security> SecurityList { get; set; }
+        internal static List<Business.Symbol> SymbolList { get; set; }
+        internal static List<IPresenter.IMarketArea> MarketArea { get; set; }
+        internal static List<Business.TradeType> TradeTypeList { get; set; }
+        internal static List<Business.IGroupSecurity> IGroupSecurityList { get; set; }
+        internal static List<Business.IGroupSymbol> IGroupSymbolList { get; set; }
+        internal Double TimeLeftWeek { get; set; }
+        internal static Business.TickLog TickCurrent { get; set; }
+        internal static List<Business.OpenTrade> listTempOrder { get; set; }
+        internal static List<Business.SystemLog> listTempLog { get; set; }
+        internal static List<Business.OpenTrade> listTempReport { get; set; }
+        public static int TickTimeOut { get { return 3000; } }
+        public static List<Business.GroupDefault> ListGroupDefault { get; set; }
+        #endregion        
+
+        #region Property Calculation Swaps        
+        private static Business.DateTimeEvent TimeSwaps { get; set; }
+        #endregion
+
+        #region Property Send Mail Report Day
+        private static Business.DateTimeEvent TimeReport { get; set; }
+        #endregion
+
+        #region Property Process Setting Order In Admin
+        private static Business.DateTimeEvent TimeSettingOrder { get; set; }
+        #endregion
+
+        #region Property Time Event
+        internal static List<Business.TimeEvent> DayEvent { get; set; }
+        internal static List<Business.TimeEvent> WeekEvent { get; set; }
+        internal static List<Business.TimeEvent> YearEvent { get; set; }
+        internal static List<Business.TimeEvent> FutureEvent { get; set; }
+        
+        internal static Timer TimerEventDay { get; set; }
+        internal static Timer TimerEventWeek { get; set; }
+        internal static Timer TimerEventYear { get; set; }
+        internal static Timer TimerEventFuture { get; set; }
+        internal static Timer TimerInvestorOnline { get; set; }        
+        private static System.Threading.Thread ThreadMultiplePrice { get; set; }
+        internal static System.Threading.Thread ThreadAgentRecycle { get; set; }
+
+        internal static List<Business.TimeEvent> EventExecuteDay { get; set; }
+        internal static List<Business.TimeEvent> EventExecuteWeek { get; set; }
+        internal static List<Business.TimeEvent> EventExecuteYear { get; set; }        
+        internal Double TimeLeft { get; set; }
+        internal Double TimeLeftFuture { get; set; }
+        internal Business.DateTimeEvent EndOfDay { get; set; }
+        internal static bool IsExecutorDay { get; set; }
+        internal static bool IsExecutorWeek { get; set; }
+        internal static bool IsExecutorYear { get; set; }
+        internal static DateTime TimeEndDay { get; set; }
+        internal static DateTime TimeEndMonth { get; set; }
+        internal static bool IsActivePendingOrder { get; set; }
+        public static List<Business.Investor> InvestorOnline { get; set; }
+
+        public static DateTime EndDayTime { get; set; } //time setting event end day
+        public static DateTime TimeStartDay { get; set; }   //time setting event end day
+
+        public static bool IsRealSearver { get; set; }
+
+        public static bool IsRuleTrader { get; set; } //setting new rule trading in et5
+        #endregion
+
+        #region Property Implement From Interface IMarketArea
+        public int IMarketAreaID { get; set; }
+        public Market MarketContainer { get; set; }
+        List<TradeType> IPresenter.IMarketArea.Type { get; set; }
+        public IPresenter.AddCommandDelegate AddCommandNotify { get; set; }
+        public string IMarketAreaName { get; set; }
+        public List<Symbol> ListSymbol { get; set; }
+        public List<ParameterItem> MarketAreaConfig { get; set; }
+        #endregion 
+
+        #region PROPERTY ISBUSY OF TEMPORDER
+        //it using then manager get order, then isbusy = true
+        public static bool IsBusy { get; set; }
+        #endregion
+
+        #region PROPERTY TEMP LIST ORDER
+        internal static List<Business.OrderInvestor> TempListOrder { get; set; }
+        #endregion
+
+        #region STRING SEND MAIL
+        public static string LogContentSendMail { get; set; }
+        public static string LogContentSendMailMonth { get; set; }
+        #endregion
+
+        #region PROPERTY CHECK VALID IP ADDRESS        
+        internal static List<List<List<List<List<bool>>>>> BlockIpAddress { get; set; }        
+        #endregion
+
+        #region PROPERTY CHECK MULTIPLE PRICE QUOTES
+        internal static System.Threading.Thread ThreadInvestorOnline { get; set; }        
+        internal static int TimeCheckMultiplePrice { get; set; }
+        internal static List<Business.PriceServer> MultiplePriceQuotes { get; set; }
+        internal static bool IsMultipleQuote { get; set; }
+        internal static bool isBlock { get; set; }
+        #endregion        
+
+        #region PROPERTY THREAD CLOSE COMMAND
+        internal static System.Threading.Thread ThreadRemoveCommand { get; set; }
+        internal static List<Business.OpenRemove> RemoveCommandList { get; set; }
+        public static bool IsRemoveCommand { get; set; }
+        #endregion   
+     
+        #region PROPERTY THREAD DELETE PENDING ORDER
+        internal static Timer TimerExpirePending { get; set; }
+        #endregion
+
+        #region PROPERTY LOCK OBJECT
+        internal static object syncObject = new object();
+        #endregion
+
+        #region LIST SYSTEM LOG
+        internal static List<Business.SystemLog> ListSystemLog { get; set; }
+        internal static System.Threading.Thread ThreadSystemLog { get; set; }
+        internal static bool IsProcessLog { get; set; }
+        #endregion
+
+        #region PROPERTY TIME FRAME(SIGNAL)
+        //internal static ForexSignal.Facade InsFoxrex { get; set; }
+        //internal static List<Business.TimeFrame> ListTimeFrame { get; set; }
+        #endregion
+
+        #region PROERTY THREAD INSERT STATEMENT
+        private static bool IsProcessAddStatement { get; set; }
+        private static List<Business.StatementInvestor> ListStatementEOD { get; set; }
+        private static System.Threading.Thread ThreadStatement { get; set; }
+        #endregion
+
+        #region PROPERTY THREAD PROCESS LAST ACCOUNT
+        private static bool IsProcessLastAccount { get; set; }
+        private static List<Business.SumLastAccount> ListLastAccount { get; set; }
+        private static System.Threading.Thread ThreadLastAccount { get; set; }
+        #endregion
+
+        #region PROCESS SAVE STATEMENT TO DATABASE
+        private static bool IsProcessSaveStatement { get; set; }
+        private static List<Business.Statement> ListStatement { get; set; }
+        private static System.Threading.Thread ThreadSaveStatement { get; set; }
+        #endregion
+
+        #region PROPERTY CONNECT TO MT4 USING SOCKET
+        internal static Element5SocketConnectMT4.Business.SocketConnect InstanceSocket { get; set; }
+        internal static Element5SocketConnectMT4.Business.SocketConnectAsync InstanceSocketAsync { get; set; }
+        internal static Element5SocketConnectMT4.Business.SocketConnectTickAsync InstanceSocketTickAsync { get; set; }
+
+        internal static ClientSocket.SocketConnectAsync InstanceSocketAsyncClient { get; set; }
+
+        public static List<string> NotifyMessageFromMT4 { get; set; }
+        public static List<string> NotifyTickFromMT4 { get; set; }
+        private static System.Threading.Thread ThreadProcessNotifyMessage { get; set; }
+        private static System.Threading.Thread ThreadProcessNotifyTickMT4 { get; set; }
+        private static System.Threading.Thread ThreadConnectMT4 { get; set; }
+        private static bool IsProcessNotifyMessage { get; set; }
+        private static bool IsProcessNotifyTick { get; set; }
+        public static bool IsConnectMT4 { get; set; }
+        internal static bool StatusConnect { get; set; }
+
+        internal const string DEFAULT_IPADDRESS_LOCAL = "127.0.0.1";
+        internal const int DEFAULT_NJ4X = 9999;
+
+        internal const string DEFAULT_IPADDRESS = "192.168.86.1";
+        internal const int DEFAULT_PORT = 2000;
+
+        internal const int DEFAULT_PORTASYNC = 3000;
+        internal const int DEFAULT_PORTASYNC_CLIENT = 4000;
+        internal const int DEFAULT_PORTASYNC_TICK = 5000;
+
+        //internal const string DEFAULT_IPADDRESS = "202.150.222.196";
+        //internal const int DEFAULT_PORT = 2000;
+        //internal const int DEFAULT_PORTASYNC = 3000;
+
+        //internal const string DEFAULT_IPADDRESS = "202.150.222.239";
+        //internal const int DEFAULT_PORT = 2000;
+        //internal const int DEFAULT_PORTASYNC = 3000;
+
+        //internal const string DEFAULT_IPADDRESS = "202.150.222.238";
+        //internal const int DEFAULT_PORT = 4000;
+        //internal const int DEFAULT_PORTASYNC = 5000;
+
+        //internal const string DEFAULT_IPADDRESS = "172.16.7.201";
+        //internal const int DEFAULT_PORT = 22000;
+        //internal const int DEFAULT_PORTASYNC = 33000;
+
+        //internal const string DEFAULT_IPADDRESS = "192.168.1.204";
+        //internal const int DEFAULT_PORT = 2000;
+        //internal const int DEFAULT_PORTASYNC = 3000;
+
+        private static System.Threading.Thread ThreadIniGlobalNotify { get; set; }
+        internal static Business.GlobalDelegate InstanceGlobalDelegate { get; set; }
+        public static int CountMessage { get; set; }
+        public static int CountMessageSendMT4 { get; set; }
+        public static int CountMessageReciveMT4 { get; set; }
+        #endregion
+
+        #region PROPERTY CONNECT NJ4XConnect
+        public static List<NJ4XConnectSocket.NJ4XTicket> NJ4XTickets { get; set; }
+        public static List<NJ4XConnectSocket.SocketTicket> NJ4XSocketTickets { get; set; }
+        #endregion
+
+        #region PROPERTY CONNECT MT4 USING MQL
+        public static List<MQLConnector.Model.TradeResult> MQLTrades { get; set; }
+        #endregion
+
+        #region PROPERTY BROKER WCF
+        internal static BrokerWCF.BrokerWCFClient clientBroker { get; set; }
+        #endregion
+
+        #region PROPERTY AGENT WCF
+        //internal static List<TradingServer.Agent.IAdminMaster> ListConfigAdminMaster { get; set; }
+        //internal static List<TradingServer.Agent.IMasterAgentSymbol> ListConfigMasterAgent { get; set; }
+        //internal static List<TradingServer.Agent.IAgentInvestorSymbol> ListConfigAgentInvestor { get; set; }
+        internal static List<string> ListTickQueueAgent { get; set; }
+        internal static System.Threading.Thread threadProcessTickAgent { get; set; }
+        internal static bool IsProcessTickAgent { get; set; }
+
+        internal static List<Business.AgentNotify> ListNotifyQueueAgent { get; set; }
+        internal static List<Business.AgentNotify> BKListNotifyQueueAgent { get; set; }
+        internal static System.Threading.Thread threadProcessNotifyAgent { get; set; }
+        internal static bool IsProcessNotifyAgent { get; set; }
+
+        internal static List<TradingServer.Agent.AgentConfig> ListAgentConfig { get; set; }
+        internal static bool IsConnectAgent { get; set; }
+        #endregion
+
+        #region PROPERTY DELAY SEND MAIL WARNING MARGIN CALL
+        public static int TimeDelaySendWarningMarginCall { get; set; }
+        #endregion
+
+        #region PROPERTY GET REPORT AGENT
+        public static List<Business.AgentReport> ListAgentReport { get; set; }
+        public static List<Business.AgentReport> ListHistoryAgent { get; set; }
+        #endregion
+
+        #region PROPERTY END OF DAY AGENT
+        public static List<Business.EndOfDayAgent> ListEODAgent { get; set; }
+        #endregion
+
+        public static bool IsCheckScalper { get; set; }
+        public static double ScalperPipValue { get; set; }
+        public static double ScalperTimeValue { get; set; }
+
+        #region CONFIG MAIL STATEMENT
+        public static string CompanyWebsite { get; set; }
+        public static string ServiceName { get; set; }
+        public static string MailSupport { get; set; }
+        public static string MailContact { get; set; }
+        public static string CompanyName { get; set; }
+        public static string About { get; set; }
+        public static string CompanyCopyright { get; set; }
+        public static string AccessLink { get; set; }
+        #endregion
+
+        #region ADMIN OR MANAGER REQUEST CLIENT LOG
+        internal static bool InRequestClientLog { get; set; }
+        public static List<Business.ClientLog> ListClientLogs { get; set; }
+        #endregion
+
+        #region ROBOT DETECT THREAD
+        public static int robotDetectThread = 0;
+        public static string strDetect = string.Empty;
+        public static string strDetectTick = string.Empty;
+        #endregion
+    }
+}

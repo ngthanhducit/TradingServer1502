@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/TradingServer.Business" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/TradingServer.Business" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="ArrayOfTick">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Tick" nillable="true" type="tns:Tick" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ArrayOfTick" nillable="true" type="tns:ArrayOfTick" />
+  <xs:complexType name="Tick">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Ask" type="xs:double" />
+      <xs:element minOccurs="0" name="Bid" type="xs:double" />
+      <xs:element minOccurs="0" name="HighAsk" type="xs:double" />
+      <xs:element minOccurs="0" name="HighInDay" type="xs:double" />
+      <xs:element minOccurs="0" name="ID" type="xs:int" />
+      <xs:element minOccurs="0" name="IsManager" type="xs:boolean" />
+      <xs:element minOccurs="0" name="IsUpdate" type="xs:boolean" />
+      <xs:element minOccurs="0" name="LowAsk" type="xs:double" />
+      <xs:element minOccurs="0" name="LowInDay" type="xs:double" />
+      <xs:element minOccurs="0" name="Status" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="SymbolID" type="xs:int" />
+      <xs:element minOccurs="0" name="SymbolName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="TickTime" type="xs:dateTime" />
+      <xs:element minOccurs="0" name="TimeCurrent" type="xs:dateTime" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Tick" nillable="true" type="tns:Tick" />
+</xs:schema>

@@ -1,0 +1,2230 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Net;
+using System.IO;
+
+namespace TradingServer.Business
+{
+    public partial class Market
+    {
+        /// <summary>
+        /// THREAD CHECK INVESTOR ONLINE
+        /// </summary>
+        internal static void TimeEventCheckInvestorOnline()
+        {
+            //TradingServer.Facade.FacadeAddNewSystemLog(5, "Check Time Event Check Investor Online", "Error Check Investor Online", "", "");
+            while (true)
+            {
+                if (Business.Market.InvestorOnline != null)
+                {   
+                    int count = Business.Market.InvestorOnline.Count;
+                    for (int i = count - 1; i >= 0; i--)
+                    {
+                        if (Business.Market.InvestorOnline[i].SessionInstance != null)
+                            continue;
+
+                        if (Business.Market.InvestorOnline[i].IsLogout)
+                        {
+                            Business.Market.InvestorOnline.RemoveAt(i);
+                            continue;
+                        }
+
+                        //int timeOut = Business.Market.InvestorOnline[i].numTimeOut;
+                        //int temp = timeOut - 5;
+                        Business.Market.InvestorOnline[i].numTimeOut = Business.Market.InvestorOnline[i].numTimeOut - 5;
+                        if (Business.Market.InvestorOnline[i].numTimeOut <= 0)
+                        //if (temp < 1)
+                        {
+                            //string content = "Remove investor online " + " " + Business.Market.InvestorOnline[i].Code + " " + Business.Market.InvestorOnline[i].numTimeOut;
+                            //TradingServer.Facade.FacadeAddNewSystemLog(5, content, "Remove investor online", "", "");
+
+                            //send notify to manager
+                            TradingServer.Facade.FacadeSendNotifyManagerRequest(2, Business.Market.InvestorOnline[i]);
+
+                            if (Business.Market.InvestorList != null)
+                            {
+                                int countInvestor = Business.Market.InvestorList.Count;
+                                for (int j = 0; j < countInvestor; j++)
+                                {   
+                                    if (Business.Market.InvestorList[j].InvestorID == Business.Market.InvestorOnline[i].InvestorID)
+                                    {
+                                        Business.Market.InvestorList[j].IsOnline = false;
+                                        //Business.Market.InvestorList[j].IsLogout = true;
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                            Business.Market.InvestorOnline.RemoveAt(i);
+                        }
+                        //else
+                        //{
+                        //    Business.Market.InvestorOnline[i].numTimeOut = temp;
+                        //}
+                    }
+                }
+
+                System.Threading.Thread.Sleep(5000);
+            }
+            //Business.Market.TimerInvestorOnline = new System.Timers.Timer();
+            //TradingServer.Facade.FacadeAddNewSystemLog(5, "New Timer", "", "", "");
+            //Business.Market.TimerInvestorOnline.Interval = 5000;
+            //Business.Market.TimerInvestorOnline.Elapsed += new System.Timers.ElapsedEventHandler(TimerInvestorOnline_Elapsed);            
+            //Business.Market.TimerInvestorOnline.Enabled = true;            
+        }
+
+        /// <summary>
+        /// TIMER CHECK INVESTOR ONLINE
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void TimerInvestorOnline_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            //Business.Market.TimerInvestorOnline.Stop();
+            //if (Business.Market.InvestorOnline != null)
+            //{                
+            //    for (int i = 0; i < Business.Market.InvestorOnline.Count; i++)
+            //    {
+            //        int timeOut = Business.Market.InvestorOnline[i].numTimeOut;
+            //        int temp = timeOut - 5;
+            //        //Business.Market.InvestorOnline[i].numTimeOut = Business.Market.InvestorOnline[i].numTimeOut - 5;
+            //        //if (Business.Market.InvestorOnline[i].numTimeOut < 1)
+            //        if (temp < 1)
+            //        {
+            //            string content = "Remove investor online " + Business.Market.InvestorOnline[i].Code + " " + Business.Market.InvestorOnline[i].numTimeOut;
+            //            TradingServer.Facade.FacadeAddNewSystemLog(5, content, "Remove investor online", "", "");
+            //            Business.Market.InvestorOnline.RemoveAt(i);
+
+            //            i--;
+            //        }
+            //        else
+            //        {
+
+            //        }
+            //    }
+            //}
+
+            //Business.Market.TimerInvestorOnline.Start();
+        }
+
+        //numCheck: 
+        //==> 0-> Normal(IsPrimary = true and IsRecive = true Status = Connect)
+        //==> 1-> Change (IsPrimary = true And IsRecive = True Status = Disconnect) ==> Change IsRecive = False
+        //==> 2-> Return (IsPrimary = True , IsRecive = false Status = Connection) ==> Change IsRevice = True
+        //==> 3-> ChangeSecond (IsPrimary = False, IsRecive = False Status = Disconnected) => Change IsRecive = True
+        /// <summary>
+        /// THREAD CHECK MUTILPLE PRICE QUOTES
+        /// </summary>
+        /// <returns></returns>
+        internal static void ThreadCheckMultiplePrice()
+        {
+            while (Business.Market.IsMultipleQuote)
+            {
+                Business.Market.isBlock = true;
+
+                int isNumCheck = 0;
+                if (Business.Market.MultiplePriceQuotes != null)
+                {
+                    int count = Business.Market.MultiplePriceQuotes.Count;
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (Business.Market.MultiplePriceQuotes[i].IsPrimary)
+                        {
+                            if (Business.Market.MultiplePriceQuotes[i].IsRecive)
+                            {
+                                TimeSpan timeSpan = DateTime.Now - Business.Market.MultiplePriceQuotes[i].TimeConnect;
+                                if (timeSpan.TotalSeconds > Business.Market.TimeCheckMultiplePrice)
+                                {
+                                    isNumCheck = 1;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                TimeSpan timeSpan = DateTime.Now - Business.Market.MultiplePriceQuotes[i].TimeConnect;
+                                if (timeSpan.TotalSeconds < Business.Market.TimeCheckMultiplePrice)
+                                {
+                                    isNumCheck = 2;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (Business.Market.MultiplePriceQuotes[i].IsRecive)
+                            {
+                                TimeSpan timeSpan = DateTime.Now - Business.Market.MultiplePriceQuotes[i].TimeConnect;
+                                if (timeSpan.TotalSeconds > Business.Market.TimeCheckMultiplePrice)
+                                {
+                                    isNumCheck = 3;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    switch (isNumCheck)
+                    {
+                        case 1:
+                            {
+                                int nCount = Business.Market.MultiplePriceQuotes.Count;
+                                int indexMin = 0;
+                                double min = 0;
+                                for (int i = 0; i < nCount; i++)
+                                {
+                                    if (!Business.Market.MultiplePriceQuotes[i].IsPrimary)
+                                    {                                        
+                                        TimeSpan timeSpan = DateTime.Now - Business.Market.MultiplePriceQuotes[i].TimeConnect;
+                                        if (min == 0)
+                                        {
+                                            min = timeSpan.TotalSeconds;
+                                            indexMin = i;
+                                        }
+
+                                        if (min > timeSpan.TotalSeconds)
+                                        {
+                                            min = timeSpan.TotalSeconds;
+                                            indexMin = i;
+                                        }
+
+                                        if (Business.Market.MultiplePriceQuotes[i].IsRecive == true)
+                                        {
+                                            Business.Market.MultiplePriceQuotes[i].Status = StatusPriceServer.Disconnected;
+                                            Business.Market.MultiplePriceQuotes[i].IsRecive = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Business.Market.MultiplePriceQuotes[i].Status = StatusPriceServer.Disconnected;
+                                        Business.Market.MultiplePriceQuotes[i].IsRecive = false;
+                                    }
+                                }
+
+                                if (indexMin < nCount)
+                                {
+                                    Business.Market.MultiplePriceQuotes[indexMin].Status = StatusPriceServer.Connected;
+                                    Business.Market.MultiplePriceQuotes[indexMin].IsRecive = true;
+                                }
+                            }
+                            break;
+
+                        case 2:
+                            {
+                                int nCount = Business.Market.MultiplePriceQuotes.Count;
+                                for (int i = 0; i < nCount; i++)
+                                {
+                                    if (Business.Market.MultiplePriceQuotes[i].IsPrimary)
+                                    {
+                                        Business.Market.MultiplePriceQuotes[i].Status = StatusPriceServer.Connected;
+                                        Business.Market.MultiplePriceQuotes[i].IsRecive = true;
+                                    }
+                                    else
+                                    {
+                                        if (Business.Market.MultiplePriceQuotes[i].IsRecive == true)
+                                        {
+                                            Business.Market.MultiplePriceQuotes[i].Status = StatusPriceServer.Disconnected;
+                                            Business.Market.MultiplePriceQuotes[i].IsRecive = false;
+                                        }
+                                        else
+                                        {
+                                            Business.Market.MultiplePriceQuotes[i].Status = StatusPriceServer.Disconnected;
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+
+                        case 3:
+                            {
+                                int nCount = Business.Market.MultiplePriceQuotes.Count;
+                                int indexMin = 0;
+                                double min = 0;
+                                for (int i = 0; i < nCount; i++)
+                                {
+                                    if (!Business.Market.MultiplePriceQuotes[i].IsPrimary)
+                                    {
+                                        TimeSpan timeSpan = DateTime.Now - Business.Market.MultiplePriceQuotes[i].TimeConnect;
+
+                                        if (min == 0)
+                                        {
+                                            min = timeSpan.TotalSeconds;
+                                            indexMin = i;
+                                        }
+
+                                        if (min > timeSpan.TotalSeconds)
+                                        {
+                                            min = timeSpan.TotalSeconds;
+                                            indexMin = i;
+                                        }
+
+                                        if (Business.Market.MultiplePriceQuotes[i].IsRecive)
+                                        {
+                                            Business.Market.MultiplePriceQuotes[i].Status = StatusPriceServer.Disconnected;
+                                            Business.Market.MultiplePriceQuotes[i].IsRecive = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        TimeSpan timeSpan = DateTime.Now - Business.Market.MultiplePriceQuotes[i].TimeConnect;
+                                        if (timeSpan.TotalSeconds < Business.Market.TimeCheckMultiplePrice)
+                                        {
+                                            Business.Market.MultiplePriceQuotes[i].Status = StatusPriceServer.Connected;
+                                            Business.Market.MultiplePriceQuotes[i].IsRecive = true;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            Business.Market.MultiplePriceQuotes[i].Status = StatusPriceServer.Disconnected;
+                                            Business.Market.MultiplePriceQuotes[i].IsRecive = false;
+                                        }
+                                    }
+                                }
+
+                                if (indexMin < nCount)
+                                {
+                                    Business.Market.MultiplePriceQuotes[indexMin].Status = StatusPriceServer.Connected;
+                                    Business.Market.MultiplePriceQuotes[indexMin].IsRecive = true;
+                                }
+                            }
+                            break;
+                    }
+                }
+
+                Business.Market.isBlock = false;
+
+                System.Threading.Thread.Sleep(2000);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void ThreadRemoveOpenTrade()
+        {
+            try
+            {
+                Business.OpenRemove result = null;
+                while (Business.Market.IsRemoveCommand)
+                {
+                    result = Business.Market.GetOpenTradeRemove();
+
+                    while (result != null && result.OpenTradeID > 0)
+                    {
+                        if (result != null && result.OpenTradeID > 0)
+                        {
+                            bool resultRemove = Business.Market.ProcessRemoveOpenTrade(result);
+                            //if (!resultRemove)
+                            //{
+                            //    string message = "remove command " + result.OpenTradeID + " in list open trade uncomplete";
+                            //    TradingServer.Facade.FacadeAddNewSystemLog(1, message, "[remove command]", "", "");
+                            //}
+                        }
+                        else
+                        {
+                            string message = "remove command null in list open trade uncomplete";
+                            TradingServer.Facade.FacadeAddNewSystemLog(1, message, "[remove command]", "", "");
+                        }
+
+                        result = Business.Market.GetOpenTradeRemove();
+                    }
+
+                    System.Threading.Thread.Sleep(2000);
+                }
+            }
+            catch (Exception ex)
+            {                
+                TradingServer.Facade.FacadeAddNewSystemLog(1, ex.Message, "[remove command]", "", "");
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private static Business.OpenRemove GetOpenTradeRemove()
+        {
+            Business.OpenRemove result = new OpenRemove();
+            if (Business.Market.RemoveCommandList != null && Business.Market.RemoveCommandList.Count > 0)
+            {
+                if (Business.Market.RemoveCommandList[0] != null)
+                {
+                    result = Business.Market.RemoveCommandList[0];
+                    Business.Market.RemoveCommandList.Remove(Business.Market.RemoveCommandList[0]);
+                }
+                else
+                {
+                    Business.Market.RemoveCommandList.Remove(Business.Market.RemoveCommandList[0]);
+                }                
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private static bool ProcessRemoveOpenTrade(Business.OpenRemove value)
+        {
+            bool result = false;
+            bool resultRemoveExe = false;
+            bool resultRemoveComSym = false;
+            bool resultRemoveComInv = false;
+            Business.OpenTrade cacheOpenExecutor = null;            
+
+            #region REMOVE COMMAND IN COMMAND EXECUTOR
+            if (value.IsExecutor)
+            {
+                //REMOVE COMMAND IN COMMAND EXECUTOR
+                if (Business.Market.CommandExecutor != null && Business.Market.CommandExecutor.Count > 0)
+                {
+                    for (int i = 0; i < Business.Market.CommandExecutor.Count; i++)
+                    {
+                        if (Business.Market.CommandExecutor[i] != null)
+                        {
+                            if (Business.Market.CommandExecutor[i].ID == value.OpenTradeID)
+                            {
+                                cacheOpenExecutor = Business.Market.CommandExecutor[i];
+                                Business.Market.CommandExecutor.RemoveAt(i);
+                                resultRemoveExe = true;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            Business.Market.CommandExecutor.Remove(Business.Market.CommandExecutor[i]);
+                            i--;
+                        }
+                    }
+                }
+            }            
+            #endregion
+
+            #region REMOVE COMMAND IN SYMBOL LIST
+            if (value.IsSymbol)
+            {
+                if (resultRemoveExe)
+                {
+                    //REMOVE COMMAND IN SYMBOL LIST
+                    if (Business.Market.SymbolList != null && Business.Market.SymbolList.Count > 0)
+                    {
+                        for (int i = 0; i < Business.Market.SymbolList.Count; i++)
+                        {
+                            if (Business.Market.SymbolList[i].Name == value.SymbolName)
+                            {
+                                if (Business.Market.SymbolList[i].CommandList != null && Business.Market.SymbolList[i].CommandList.Count > 0)
+                                {
+                                    for (int j = 0; j < Business.Market.SymbolList[i].CommandList.Count; j++)
+                                    {
+                                        if (Business.Market.SymbolList[i].CommandList[j] != null)
+                                        {
+                                            if (Business.Market.SymbolList[i].CommandList[j].ID == value.OpenTradeID)
+                                            {
+                                                Business.Market.SymbolList[i].CommandList.RemoveAt(j);
+                                                resultRemoveComSym = true;
+                                                break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Business.Market.SymbolList[i].CommandList.Remove(Business.Market.SymbolList[i].CommandList[j]);
+                                            j--;
+                                        }
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }            
+            #endregion
+
+            #region REMOVE COMMAND IN INVESTOR LIST
+            if (value.IsInvestor)
+            {
+                if (Business.Market.InvestorList != null && Business.Market.InvestorList.Count > 0)
+                {
+                    for (int i = 0; i < Business.Market.InvestorList.Count; i++)
+                    {
+                        if (Business.Market.InvestorList[i].InvestorID == value.InvestorID)
+                        {
+                            if (Business.Market.InvestorList[i].CommandList != null && Business.Market.InvestorList[i].CommandList.Count > 0)
+                            {
+                                for (int j = 0; j < Business.Market.InvestorList[i].CommandList.Count; j++)
+                                {
+                                    if (Business.Market.InvestorList[i].CommandList[j] != null)
+                                    {
+                                        if (Business.Market.InvestorList[i].CommandList[j].ID == value.OpenTradeID)
+                                        {
+                                            Business.Market.InvestorList[i].CommandList.Remove(Business.Market.InvestorList[i].CommandList[j]);
+                                            resultRemoveComInv = true;
+                                            break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Business.Market.InvestorList[i].CommandList.Remove(Business.Market.InvestorList[i].CommandList[j]);
+                                        j--;
+                                    }
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+                }
+            }
+            #endregion
+            
+            #region PROCESS CHECK STATUS REMOVE IF REMOVE FALSE THEN ROLBACK COMMAND
+            //if (resultRemoveExe && resultRemoveComSym)
+            //{
+            //    result = true;
+            //}
+            //else
+            //{
+            //    if (resultRemoveExe && !resultRemoveComSym)
+            //    {
+            //        if (Business.Market.CommandExecutor != null)
+            //        {
+            //            Business.Market.CommandExecutor.Add(cacheOpenExecutor);
+            //        }
+            //        else
+            //        {
+            //            Business.Market.CommandExecutor = new List<OpenTrade>();
+            //            Business.Market.CommandExecutor.Add(cacheOpenExecutor);
+            //        }
+            //    }
+            //}
+            #endregion            
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="openTrade"></param>
+        /// <returns></returns>
+        internal static void AddCommandToRemoveList(Business.OpenRemove openTrade)
+        {            
+            if (Business.Market.RemoveCommandList != null)
+            {
+                Business.Market.RemoveCommandList.Add(openTrade);
+            }
+            else
+            {
+                Business.Market.RemoveCommandList = new List<OpenRemove>();
+                Business.Market.RemoveCommandList.Add(openTrade);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ipAddress"></param>
+        /// <returns></returns>
+        internal static bool CheckPriceQuotes(string ipAddress)
+        {            
+            if (Business.Market.MultiplePriceQuotes != null)
+            {
+                int count = Business.Market.MultiplePriceQuotes.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (Business.Market.MultiplePriceQuotes[i].IpServer.Trim() == ipAddress.Trim())
+                    {
+                        if (Business.Market.MultiplePriceQuotes[i].IsRecive)
+                        {
+                            Business.Market.MultiplePriceQuotes[i].TimeConnect = DateTime.Now;
+                            return true;
+                        }
+                        else
+                        {
+                            Business.Market.MultiplePriceQuotes[i].TimeConnect = DateTime.Now;
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ipAddress"></param>
+        /// <returns></returns>
+        internal static bool CheckMultiPriceQuotes(string ipAddress)
+        {
+            bool result = false;
+            if (Business.Market.MultiplePriceQuotes != null)
+            {
+                int count = Business.Market.MultiplePriceQuotes.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (Business.Market.MultiplePriceQuotes[i].IpServer.Trim() == ipAddress.Trim())
+                    {
+                        Business.Market.MultiplePriceQuotes[i].TimeConnect = DateTime.Now;
+                        result = true;
+
+                        break;
+                    }                        
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static void ProcessSystemLog()
+        {
+            Business.SystemLog newSystemLog;
+            while (Business.Market.IsProcessLog)
+            {                
+                newSystemLog = Business.Market.GetSystemLog();
+                while (newSystemLog != null)
+                {
+                    TradingServer.Facade.FacadeAddNewSystemLog(newSystemLog);
+                                        
+                    newSystemLog = Business.Market.GetSystemLog();
+
+                    System.Threading.Thread.Sleep(50);
+                }
+
+                System.Threading.Thread.Sleep(2000);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private static Business.SystemLog GetSystemLog()
+        {
+            Business.SystemLog result = null;
+            if (Business.Market.ListSystemLog != null && Business.Market.ListSystemLog.Count > 0)
+            {
+                result = Business.Market.ListSystemLog[0];
+
+                Business.Market.ListSystemLog.RemoveAt(0);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static void ProcessStatementEOD()
+        {
+            Business.StatementInvestor newStatementInvestor;
+            while (Business.Market.IsProcessAddStatement)
+            {
+                newStatementInvestor = Business.Market.GetStatementInvestor();
+                while (newStatementInvestor != null)
+                {
+                    //insert database
+                    if (newStatementInvestor != null)
+                    {
+                        double creditIn = 0;
+                        double creditOut = 0;
+                        double Deposit = 0;
+                        double Withdrawal = 0;
+                        double totalSwapClose = 0;
+                        double totalSwapOpen = 0;
+                        double totalCommssionClose = 0;
+                        double totalCommssionOpen = 0;
+                        double realizedPL = 0;
+                        double unRealizedPL = 0;
+                        double balance = 0;
+                        int investorID = -1;
+
+                        DateTime time = DateTime.Parse(newStatementInvestor.Date);
+                        string dbName = string.Empty;
+                        if (time.DayOfWeek == DayOfWeek.Monday)
+                        {                            
+                            //CREATE NEW DATABASE AND CREATE TABLE
+                            dbName = time.Day.ToString() + time.Month.ToString() + time.Year.ToString();
+
+                            bool isExists = ServerBackupLibrary.FacadeDB.FacadeCheckExitsDatabase(dbName);
+
+                            if (!isExists)
+                            {
+                                ServerBackupLibrary.FacadeDB.CreateDatabase(dbName);
+                                ServerBackupLibrary.FacadeDB.FacadeCreateInvestorAccount(dbName);
+                                ServerBackupLibrary.FacadeDB.FacadeCreateTableCommandHistory(dbName);
+                                ServerBackupLibrary.FacadeDB.FacadeCreateTableOpenPosition(dbName);
+                            }
+                        }
+                        else
+                        {
+                            int days = time.DayOfWeek - DayOfWeek.Monday;
+                            DateTime tempTime = time.AddDays(-days);
+                            dbName = tempTime.Day.ToString() + tempTime.Month.ToString() + tempTime.Year.ToString();
+
+                            bool isExits = ServerBackupLibrary.FacadeDB.FacadeCheckExitsDatabase(dbName);
+                            if (!isExits)
+                            {
+                                ServerBackupLibrary.FacadeDB.CreateDatabase(dbName);
+                                ServerBackupLibrary.FacadeDB.FacadeCreateInvestorAccount(dbName);
+                                ServerBackupLibrary.FacadeDB.FacadeCreateTableCommandHistory(dbName);
+                                ServerBackupLibrary.FacadeDB.FacadeCreateTableOpenPosition(dbName);
+                            }
+                        }
+
+                        #region PROCESS CALCULATION TOTAL COMMISSION, TOTAL SWAP, UNREALIZEDPL
+                        if (newStatementInvestor.ListOpenPosition != null)
+                        {
+                            int countOpenPosition = newStatementInvestor.ListOpenPosition.Count;
+                            for (int i = 0; i < countOpenPosition; i++)
+                            {
+                                totalCommssionOpen += newStatementInvestor.ListOpenPosition[i].Commission;
+                                totalSwapOpen += newStatementInvestor.ListOpenPosition[i].Swap;
+                                unRealizedPL += newStatementInvestor.ListOpenPosition[i].Profit;
+                            }
+                        }
+                        #endregion
+
+                        #region PROCESS CALCULATION DEPOSIT, WITHDRAWAL, CREDIT IN, CREDIT OUT, TOTAL COMMISSION, TOTAL SWAP, REALIZEDPL
+                        if (newStatementInvestor.ListHistory != null)
+                        {
+                            int countHistory = newStatementInvestor.ListHistory.Count;
+                            for (int i = 0; i < countHistory; i++)
+                            {
+                                ServerBackupLibrary.Business.OpenTrade newCommandHistory = new ServerBackupLibrary.Business.OpenTrade();
+
+                                if (newStatementInvestor.ListHistory[i].Type.ID == 21)
+                                    continue;
+
+                                if (newStatementInvestor.ListHistory[i].Type.ID == 13 || newStatementInvestor.ListHistory[i].Type.ID == 14 ||
+                                    newStatementInvestor.ListHistory[i].Type.ID == 15 || newStatementInvestor.ListHistory[i].Type.ID == 16)
+                                {
+                                    if (newStatementInvestor.ListHistory[i].Type.ID == 13)
+                                        Deposit += newStatementInvestor.ListHistory[i].Profit;
+
+                                    if (newStatementInvestor.ListHistory[i].Type.ID == 14)
+                                        Withdrawal += newStatementInvestor.ListHistory[i].Profit;
+
+                                    if (newStatementInvestor.ListHistory[i].Type.ID == 15)
+                                        creditIn += newStatementInvestor.ListHistory[i].Profit;
+
+                                    if (newStatementInvestor.ListHistory[i].Type.ID == 16)
+                                        creditOut += newStatementInvestor.ListHistory[i].Profit;
+                                }
+                                else
+                                {
+                                    totalCommssionClose += newStatementInvestor.ListHistory[i].Commission;
+                                    totalSwapClose += newStatementInvestor.ListHistory[i].Swap;
+                                    realizedPL += newStatementInvestor.ListHistory[i].Profit;
+                                }
+                            }
+                        }
+                        #endregion
+
+                        #region PROCESS INSERT ACCOUNT STATEMENT
+                        if (newStatementInvestor.InvestorAccount != null && newStatementInvestor.InvestorAccount.InvestorID > 0)
+                        {
+                            ServerBackupLibrary.Business.InvestorAccount newInvestorAccount = new ServerBackupLibrary.Business.InvestorAccount();
+                            ServerBackupLibrary.Business.AccountSummary newAccountSummary = new ServerBackupLibrary.Business.AccountSummary();
+
+                            newInvestorAccount.Code = newStatementInvestor.InvestorAccount.Code;
+                            newInvestorAccount.Currency = "USD";
+                            newInvestorAccount.InvestorID = newStatementInvestor.InvestorAccount.InvestorID;
+                            newInvestorAccount.LogDate = DateTime.Parse(newStatementInvestor.Date);
+                            newInvestorAccount.Name = newStatementInvestor.InvestorAccount.NickName;
+
+                            double previousLedgerBalance = TradingServer.Facade.FacadeGetPreviousLedgerBalance(newStatementInvestor.InvestorAccount.InvestorID);
+                            balance = Math.Round(previousLedgerBalance + realizedPL + totalSwapClose + totalSwapOpen + Deposit - Withdrawal, 2);
+
+                            newInvestorAccount.Balance = balance;
+                            newInvestorAccount.CreditIn = creditIn;
+                            newInvestorAccount.CreditOut = creditOut;
+                            newInvestorAccount.Deposit = Deposit;
+                            newInvestorAccount.Equity = Math.Round(balance + unRealizedPL + newStatementInvestor.InvestorAccount.Credit, 2);
+                            //newInvestorAccount.FreeMargin = newAccountSummary.Equity - (newStatementInvestor.InvestorAccount.Margin + newStatementInvestor.InvestorAccount.FreezeMargin);
+                            newInvestorAccount.InvestorID = newStatementInvestor.InvestorAccount.InvestorID;
+                            newInvestorAccount.Margin = newStatementInvestor.InvestorAccount.Margin + newStatementInvestor.InvestorAccount.FreezeMargin;
+
+                            double marginLevel = 0;
+                            //if ((newStatementInvestor.InvestorAccount.Margin + newStatementInvestor.InvestorAccount.FreezeMargin) > 0)
+                            //    marginLevel = (newAccountSummary.Equity * 100) / (newStatementInvestor.InvestorAccount.Margin + newStatementInvestor.InvestorAccount.FreezeMargin);
+
+                            newInvestorAccount.MarginLevel = marginLevel;
+                            newInvestorAccount.PreviousLedger = previousLedgerBalance;
+                            newInvestorAccount.RealizePL = realizedPL;
+                            newInvestorAccount.Swap = totalSwapOpen;
+                            newInvestorAccount.TotalCommissionClose = totalCommssionClose;
+                            newInvestorAccount.TotalCommissionOpen = totalCommssionOpen;
+                            newInvestorAccount.TotalSwapClose = totalSwapClose;
+                            newInvestorAccount.TotalSwapOpen = totalSwapOpen;
+                            newInvestorAccount.UnrealizedPL = unRealizedPL;
+                            newInvestorAccount.Withdrawal = Withdrawal;
+
+                            investorID = ServerBackupLibrary.FacadeDB.FacadeInsertInvestorAccount(dbName, newInvestorAccount);
+                        }
+                        #endregion
+
+                        #region PROCESS INSERT DATABASE HISTORY COMMAND
+                        if (newStatementInvestor.ListHistory != null)
+                        {
+                            int countHistory = newStatementInvestor.ListHistory.Count;
+                            for (int i = 0; i < countHistory; i++)
+                            {
+                                ServerBackupLibrary.Business.OpenTrade newCommandHistory = new ServerBackupLibrary.Business.OpenTrade();
+
+                                if (newStatementInvestor.ListHistory[i].Type.ID == 21)
+                                    continue;
+
+                                if (newStatementInvestor.ListHistory[i].Type.ID == 13 || newStatementInvestor.ListHistory[i].Type.ID == 14 ||
+                                    newStatementInvestor.ListHistory[i].Type.ID == 15 || newStatementInvestor.ListHistory[i].Type.ID == 16)
+                                {
+                                    if (newStatementInvestor.ListHistory[i].Type.ID == 13)
+                                        Deposit += newStatementInvestor.ListHistory[i].Profit;
+
+                                    if (newStatementInvestor.ListHistory[i].Type.ID == 14)
+                                        Withdrawal += newStatementInvestor.ListHistory[i].Profit;
+
+                                    if (newStatementInvestor.ListHistory[i].Type.ID == 15)
+                                        creditIn += newStatementInvestor.ListHistory[i].Profit;
+
+                                    if (newStatementInvestor.ListHistory[i].Type.ID == 16)
+                                        creditOut += newStatementInvestor.ListHistory[i].Profit;
+                                }
+                                else
+                                {                                    
+                                    newCommandHistory.AgentCommission = newStatementInvestor.ListHistory[i].AgentCommission;
+                                    newCommandHistory.ClientCode = newStatementInvestor.ListHistory[i].ClientCode;
+                                    newCommandHistory.ClosePrice = newStatementInvestor.ListHistory[i].ClosePrice;
+                                    newCommandHistory.CloseTime = newStatementInvestor.ListHistory[i].CloseTime;
+                                    newCommandHistory.CommandCode = newStatementInvestor.ListHistory[i].CommandCode;
+                                    newCommandHistory.CommandTypeID = newStatementInvestor.ListHistory[i].Type.ID;
+                                    newCommandHistory.Comment = newStatementInvestor.ListHistory[i].Comment;
+                                    newCommandHistory.Commission = newStatementInvestor.ListHistory[i].Commission;
+                                    newCommandHistory.ExpTime = newStatementInvestor.ListHistory[i].ExpTime;
+                                    newCommandHistory.InvestorID = investorID;
+                                    newCommandHistory.IsClose = newStatementInvestor.ListHistory[i].IsClose;
+                                    newCommandHistory.IsDelete = false;
+                                    newCommandHistory.OpenPrice = newStatementInvestor.ListHistory[i].OpenPrice;
+                                    newCommandHistory.OpenTime = newStatementInvestor.ListHistory[i].OpenTime;
+                                    newCommandHistory.OpenTradeID = newStatementInvestor.ListHistory[i].ID;
+                                    newCommandHistory.Profit = newStatementInvestor.ListHistory[i].Profit;
+                                    newCommandHistory.Size = newStatementInvestor.ListHistory[i].Size;
+                                    newCommandHistory.StopLoss = newStatementInvestor.ListHistory[i].StopLoss;
+                                    newCommandHistory.Swap = newStatementInvestor.ListHistory[i].Swap;
+                                    newCommandHistory.SymbolName = newStatementInvestor.ListHistory[i].Symbol.Name;
+                                    newCommandHistory.TakeProfit = newStatementInvestor.ListHistory[i].TakeProfit;
+                                    newCommandHistory.Taxes = newStatementInvestor.ListHistory[i].Taxes;
+                                    newCommandHistory.TotalSwaps = newStatementInvestor.ListHistory[i].TotalSwap;
+                                    newCommandHistory.Pips = newStatementInvestor.ListHistory[i].ClosePrice - newStatementInvestor.ListHistory[i].OpenPrice;
+
+                                    totalCommssionClose += newStatementInvestor.ListHistory[i].Commission;
+                                    totalSwapClose += newStatementInvestor.ListHistory[i].Swap;
+                                    unRealizedPL += newStatementInvestor.ListHistory[i].Profit;
+                                }
+
+                                ServerBackupLibrary.FacadeDB.FacadeInsertOpenTrade(dbName, newCommandHistory, false);
+                            }
+                        }
+                        #endregion
+
+                        #region PROCESS INSERT DATABASE OPEN POSITION
+                        if (newStatementInvestor.ListOpenPosition != null)
+                        {
+                            int countOpenPosition = newStatementInvestor.ListOpenPosition.Count;
+                            for (int i = 0; i < countOpenPosition; i++)
+                            {
+                                ServerBackupLibrary.Business.OpenTrade newOpenPosition = new ServerBackupLibrary.Business.OpenTrade();
+                                newOpenPosition.AgentCommission = newStatementInvestor.ListOpenPosition[i].AgentCommission;
+                                newOpenPosition.ClientCode = newStatementInvestor.ListOpenPosition[i].ClientCode;
+                                newOpenPosition.ClosePrice = newStatementInvestor.ListOpenPosition[i].ClosePrice;
+                                newOpenPosition.CloseTime = newStatementInvestor.ListOpenPosition[i].CloseTime;
+                                newOpenPosition.CommandCode = newStatementInvestor.ListOpenPosition[i].CommandCode;
+                                newOpenPosition.CommandTypeID = newStatementInvestor.ListOpenPosition[i].Type.ID;
+                                newOpenPosition.Comment = newStatementInvestor.ListOpenPosition[i].Comment;
+                                newOpenPosition.Commission = newStatementInvestor.ListOpenPosition[i].Commission;
+                                newOpenPosition.ExpTime = newStatementInvestor.ListOpenPosition[i].ExpTime;
+                                newOpenPosition.InvestorID =investorID;
+                                newOpenPosition.IsClose = newStatementInvestor.ListOpenPosition[i].IsClose;
+                                newOpenPosition.IsDelete = false;
+                                newOpenPosition.OpenPrice = newStatementInvestor.ListOpenPosition[i].OpenPrice;
+                                newOpenPosition.OpenTime = newStatementInvestor.ListOpenPosition[i].OpenTime;
+                                newOpenPosition.OpenTradeID = newStatementInvestor.ListOpenPosition[i].ID;
+                                newOpenPosition.Pips = newStatementInvestor.ListOpenPosition[i].ClosePrice - newStatementInvestor.ListOpenPosition[i].OpenPrice;
+                                newOpenPosition.Profit = newStatementInvestor.ListOpenPosition[i].Profit;
+                                newOpenPosition.Size = newStatementInvestor.ListOpenPosition[i].Size;
+                                newOpenPosition.StopLoss = newStatementInvestor.ListOpenPosition[i].StopLoss;
+                                newOpenPosition.Swap = newStatementInvestor.ListOpenPosition[i].Swap;
+                                newOpenPosition.SymbolName = newStatementInvestor.ListOpenPosition[i].Symbol.Name;
+                                newOpenPosition.TakeProfit = newStatementInvestor.ListOpenPosition[i].TakeProfit;
+                                newOpenPosition.Taxes = newStatementInvestor.ListOpenPosition[i].Taxes;
+                                newOpenPosition.TotalSwaps = newStatementInvestor.ListOpenPosition[i].TotalSwap;
+
+                                totalCommssionOpen += newStatementInvestor.ListOpenPosition[i].Commission;
+                                totalSwapOpen += newStatementInvestor.ListOpenPosition[i].Swap;
+                                unRealizedPL += newStatementInvestor.ListOpenPosition[i].Profit;
+
+                                ServerBackupLibrary.FacadeDB.FacadeInsertOpenTrade(dbName, newOpenPosition, true);
+                            }
+                        }
+                        #endregion
+                    }   
+ 
+                    newStatementInvestor = Business.Market.GetStatementInvestor();
+
+                    System.Threading.Thread.Sleep(50);
+                }
+
+                System.Threading.Thread.Sleep(60000);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private static Business.StatementInvestor GetStatementInvestor()
+        {
+            Business.StatementInvestor result = null;
+            if (Business.Market.ListStatementEOD != null && Business.Market.ListStatementEOD.Count > 0)
+            {
+                result = Business.Market.ListStatementEOD[0];
+                Business.Market.ListStatementEOD.RemoveAt(0);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static void ProcessLastBalance()
+        {
+            Business.SumLastAccount newLastAccount;
+            while (Business.Market.IsProcessLastAccount)
+            {
+                newLastAccount = Business.Market.GetLastAccount();
+                while (newLastAccount != null)
+                {
+                    double PLBalance = 0;
+                    double closePL = 0;
+                    double deposit = 0;
+                    double balance = 0;
+                    double floatingPL = 0;
+                    double creditIn = 0;
+                    double creditOut = 0;
+                    double equity = 0;                    
+                    double withdrawal = 0;
+                    double freeMargin = 0;
+                    double swap = 0;
+                    double commission = 0;
+                    double volume = 0;
+                        
+                    //PROCESS EXECUTOR LAST ACCOUNT
+                    if (newLastAccount != null)
+                    {
+                        #region PROCESS EXECUTOR HISTORY
+                        if (newLastAccount.ListHistory != null)
+                        {
+                            int count = newLastAccount.ListHistory.Count;
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (newLastAccount.ListHistory[i].Type.ID == 21)
+                                    continue;
+
+                                if (newLastAccount.ListHistory[i].Type.ID == 13 || newLastAccount.ListHistory[i].Type.ID == 14 ||
+                                    newLastAccount.ListHistory[i].Type.ID == 15 || newLastAccount.ListHistory[i].Type.ID == 16)
+                                {
+                                    if (newLastAccount.ListHistory[i].Type.ID == 13)
+                                        deposit += newLastAccount.ListHistory[i].Profit;
+
+                                    if (newLastAccount.ListHistory[i].Type.ID == 14)
+                                        withdrawal += newLastAccount.ListHistory[i].Profit;
+
+                                    if (newLastAccount.ListHistory[i].Type.ID == 15)
+                                        creditIn += newLastAccount.ListHistory[i].Profit;
+
+                                    if (newLastAccount.ListHistory[i].Type.ID == 16)
+                                        creditOut += newLastAccount.ListHistory[i].Profit;
+                                }
+                                else
+                                {
+                                    closePL += newLastAccount.ListHistory[i].Profit;
+                                    swap += newLastAccount.ListHistory[i].Swap;
+                                    commission += newLastAccount.ListHistory[i].Commission;
+                                    volume += newLastAccount.ListHistory[i].Size;
+                                }
+                            }
+                        }
+                        #endregion
+
+                        #region PROCESS EXECUTOR OPEN TRADE
+                        if (newLastAccount.ListOpenTrade != null)
+                        {
+                            int count = newLastAccount.ListOpenTrade.Count;
+                            for (int i = 0; i < count; i++)
+                            {
+                                floatingPL += newLastAccount.ListOpenTrade[i].Profit + newLastAccount.ListOpenTrade[i].Swap + 
+                                    newLastAccount.ListOpenTrade[i].Commission;
+                            }
+                        }
+                        #endregion
+                        
+                        #region SAVE FLOATINGPL AND MONTH VOLUME FOR AGENT SERVER
+                        newLastAccount.InvestorAccount.FloatingPL = floatingPL;
+                        newLastAccount.InvestorAccount.MonthVolume = volume;
+                        newLastAccount.InvestorAccount.TimeSave = TimeEndDay;
+
+                        Business.EndOfDayAgent newEODAgent = new EndOfDayAgent();
+                        newEODAgent.InvestorID = newLastAccount.InvestorAccount.InvestorID;
+                        newEODAgent.FloatingPL = floatingPL;
+                        newEODAgent.MonthVolume = volume;
+
+                        Business.Market.ListEODAgent.Add(newEODAgent);
+                        if (Business.Market.ListEODAgent.Count == Business.Market.InvestorList.Count)
+                        {
+                            #region SEND COMMAND ALERT END OF DAY TO AGENT SYSTEM
+                            try
+                            {
+                                //System.Threading.Thread.Sleep(120000);
+
+                                //SEND COMMAND TO AGENT SERVER
+                                string msg = "NotifyEndOfDay";
+                                Business.AgentNotify newAgentNotify = new AgentNotify();
+                                newAgentNotify.NotifyMessage = msg;
+                                TradingServer.Agent.AgentConfig.Instance.AddNotifyToAgent(newAgentNotify);
+                            }
+                            catch (Exception ex)
+                            {
+
+                            }
+                            #endregion
+                        }
+                        #endregion
+
+                        #region GET PREVIOUSLEDGERBALANCE = LAST BALANCE IN COMMAND HISTORY WITH TYPE = 21
+                        DateTime tempTimeStart = newLastAccount.TimeEndDay.AddDays(-1);
+
+                        if (tempTimeStart.DayOfWeek == DayOfWeek.Sunday)
+                            tempTimeStart = tempTimeStart.AddDays(-2);
+
+                        if (tempTimeStart.DayOfWeek == DayOfWeek.Saturday)
+                            tempTimeStart = tempTimeStart.AddDays(-1);
+
+                        DateTime timeStartLastBalance = new DateTime(tempTimeStart.Year, tempTimeStart.Month, tempTimeStart.Day, 00, 00, 00);
+                        DateTime timeEndLastBalance = new DateTime(tempTimeStart.Year, tempTimeStart.Month, tempTimeStart.Day, 23, 59, 59);
+                            
+                        TradingServer.Business.OpenTrade LastBalance = TradingServer.Facade.FacadeGetLastBalanceByInvestor(newLastAccount.InvestorAccount.InvestorID, timeStartLastBalance, 21, timeEndLastBalance);
+
+                        if (LastBalance != null)
+                            PLBalance = LastBalance.Profit;
+                        #endregion
+
+                        #region CALCULATION ACCOUNT
+                        balance = PLBalance + closePL + commission + swap + deposit - withdrawal;
+                        equity = balance + floatingPL + newLastAccount.InvestorAccount.Credit;
+                        #endregion
+
+                        #region CALCULATION FREE MARGIN
+                        freeMargin = equity - newLastAccount.InvestorAccount.Margin;
+                        #endregion
+
+                        List<Business.OpenTrade> listOpenTradeMonth = 
+                                            TradingServer.Facade.FacadeGetHistoryByInvestorInMonth(newLastAccount.InvestorAccount.InvestorID);
+
+                        double monthSize = 0;
+                        if (listOpenTradeMonth != null)
+                        {
+                            int count = listOpenTradeMonth.Count;
+                            for (int j = 0; j < count; j++)
+                            {
+                                monthSize += listOpenTradeMonth[j].Size;
+                            }
+                        }
+
+                        #region MAP LAST ACCOUNT
+                        Business.LastBalance newLastAccountEOD = new LastBalance();
+                        newLastAccountEOD.InvestorID = newLastAccount.InvestorAccount.InvestorID;
+                        newLastAccountEOD.LoginCode = newLastAccount.InvestorAccount.Code;
+                        newLastAccountEOD.PLBalance = PLBalance;
+                        newLastAccountEOD.ClosePL = closePL;
+                        newLastAccountEOD.Deposit = deposit;
+                        newLastAccountEOD.Balance = balance;
+                        newLastAccountEOD.FloatingPL = floatingPL;
+                        newLastAccountEOD.Credit = creditIn;
+                        newLastAccountEOD.CreditOut = creditOut;
+                        newLastAccountEOD.LastEquity = equity;
+                        newLastAccountEOD.Withdrawal = withdrawal;
+                        newLastAccountEOD.LogDate = TimeEndDay;
+                        newLastAccountEOD.CreditAccount = newLastAccount.InvestorAccount.Credit;
+                        newLastAccountEOD.LastMargin = newLastAccount.InvestorAccount.Margin;
+                        newLastAccountEOD.FreeMargin = freeMargin;
+                        newLastAccountEOD.MonthSize = monthSize;
+                        #endregion
+
+                        TradingServer.Facade.FacadeAddNewLastAccount(newLastAccountEOD);
+                    }
+
+                    newLastAccount = Business.Market.GetLastAccount();
+
+                    System.Threading.Thread.Sleep(50);
+                }
+
+                System.Threading.Thread.Sleep(60000);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private static Business.SumLastAccount GetLastAccount()
+        {
+            Business.SumLastAccount result = null;
+            if (Business.Market.ListLastAccount != null && Business.Market.ListLastAccount.Count > 0)
+            {
+                result = Business.Market.ListLastAccount[0];
+                Business.Market.ListLastAccount.RemoveAt(0);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static void ProcessNotifyMessage()
+        {
+            string result = string.Empty;
+            while (Business.Market.IsProcessNotifyMessage)
+            {
+                result = Business.Market.GetNotifyMessage();
+                while (!string.IsNullOrEmpty(result))
+                {
+                    //Process Notify Message
+                    string[] subCommand = result.Split('¬');
+                    if (subCommand.Length > 0)
+                    {
+                        int count = subCommand.Length;
+                        for (int i = 0; i < count; i++)
+                        {
+                            string[] subValue = subCommand[i].Split('$');
+                            switch (subValue[0])
+                            {
+                                #region NOTIFY MAKE COMMAND
+                                case "MakeCommandNotify":
+                                    {   
+                                        string commandType = string.Empty;
+                                        Business.OpenTrade resultOpenTrade = Business.Market.MapNotifyMakeCommand(subCommand[i]);
+
+                                        if (resultOpenTrade.Investor == null || resultOpenTrade.Symbol == null || resultOpenTrade.Type == null)
+                                        {
+                                            TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify Failed] - " + subCommand[i]);
+                                            //result = Business.Market.GetNotifyMessage();
+                                            continue;
+                                        }
+
+                                        TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify] - " + subCommand[i]);
+
+                                        if (resultOpenTrade.RefCommandID > 0)
+                                        {
+                                            bool IsBuy = false;
+                                            if (resultOpenTrade.Type.ID == 1 || resultOpenTrade.Type.ID == 7 || resultOpenTrade.Type.ID == 9)
+                                                IsBuy = true;
+
+                                            #region CONVERT TYPE
+                                            switch (resultOpenTrade.Type.ID)
+                                            {
+                                                case 1:
+                                                    commandType = "Open";
+                                                    break;
+                                                case 2:
+                                                    commandType = "Open";
+                                                    break;
+                                                case 7:
+                                                    commandType = "BuyLimit";
+                                                    break;
+                                                case 8:
+                                                    commandType = "SellLimit";
+                                                    break;
+                                                case 9:
+                                                    commandType = "BuyStop";
+                                                    break;
+                                                case 10:
+                                                    commandType = "SellStop";
+                                                    break;
+                                            }
+                                            #endregion
+
+                                            Business.OpenTrade newOpenTradeExe = new OpenTrade();
+                                            Business.OpenTrade newOpenTradeSymbol = new OpenTrade();
+                                            Business.OpenTrade newOpenTradeInvestor = new OpenTrade();
+
+                                            #region SET INSTANCE IGROUPSECURITY, SYMBOL, TYPE, INVESTOR
+                                            //set igroupsecurity
+                                            newOpenTradeExe.IGroupSecurity = resultOpenTrade.IGroupSecurity;
+                                            newOpenTradeInvestor.IGroupSecurity = resultOpenTrade.IGroupSecurity;
+                                            newOpenTradeSymbol.IGroupSecurity = resultOpenTrade.IGroupSecurity;
+
+                                            //set symbol
+                                            newOpenTradeExe.Symbol = resultOpenTrade.Symbol;
+                                            newOpenTradeInvestor.Symbol = resultOpenTrade.Symbol;
+                                            newOpenTradeSymbol.Symbol = resultOpenTrade.Symbol;
+
+                                            //set type
+                                            newOpenTradeExe.Type = resultOpenTrade.Type;
+                                            newOpenTradeInvestor.Type = resultOpenTrade.Type;
+                                            newOpenTradeSymbol.Type = resultOpenTrade.Type;
+
+                                            //set investor
+                                            newOpenTradeExe.Investor = resultOpenTrade.Investor;
+                                            newOpenTradeInvestor.Investor = resultOpenTrade.Investor;
+                                            newOpenTradeSymbol.Investor = resultOpenTrade.Investor;
+                                            #endregion
+
+                                            #region GET SPREAD DIFFIRENCE FOR COMMAND
+                                            //GET SPREAD DIFFRENCE OF OPEN TRADE
+                                            double spreadDifference = TradingServer.Model.CommandFramework.CommandFrameworkInstance.GetSpreadDifference(newOpenTradeInvestor.Symbol.SecurityID,
+                                                newOpenTradeInvestor.Investor.InvestorGroupInstance.InvestorGroupID);
+
+                                            newOpenTradeExe.SpreaDifferenceInOpenTrade = spreadDifference;
+                                            newOpenTradeInvestor.SpreaDifferenceInOpenTrade = spreadDifference;
+                                            newOpenTradeSymbol.SpreaDifferenceInOpenTrade = spreadDifference;
+                                            #endregion
+
+                                            double tempClosePrice = 0;
+                                            if (IsBuy)
+                                                tempClosePrice = resultOpenTrade.Symbol.TickValue.Bid;
+                                            else
+                                                tempClosePrice = resultOpenTrade.Symbol.TickValue.Ask;
+
+                                            resultOpenTrade.ClosePrice = tempClosePrice;
+
+                                            #region NEW INSTANCES FOR COMMAND EXECUTOR
+                                            newOpenTradeExe.AgentCommission = 0;
+                                            newOpenTradeExe.ClientCode = resultOpenTrade.ClientCode;
+                                            newOpenTradeExe.CloseTime = resultOpenTrade.OpenTime;
+                                            //newOpenTradeExe.CommandCode = resultOpenTrade.CommandCode;
+                                            newOpenTradeExe.Comment = resultOpenTrade.Comment;
+                                            newOpenTradeExe.Swap = resultOpenTrade.Swap;
+                                            newOpenTradeExe.Commission = resultOpenTrade.Commission;
+                                            newOpenTradeExe.ExpTime = resultOpenTrade.ExpTime;
+                                            newOpenTradeExe.FreezeMargin = 0;
+                                            //newOpenTradeExe.ID = listOnlineCommand[i].OnlineCommandID;
+                                            newOpenTradeExe.IsClose = false;
+                                            newOpenTradeExe.OpenPrice = resultOpenTrade.OpenPrice;
+                                            newOpenTradeExe.OpenTime = resultOpenTrade.OpenTime;
+                                            newOpenTradeExe.Profit = resultOpenTrade.Profit;
+                                            newOpenTradeExe.Size = resultOpenTrade.Size;
+                                            newOpenTradeExe.StopLoss = resultOpenTrade.StopLoss;
+                                            newOpenTradeExe.Swap = resultOpenTrade.Swap;
+                                            newOpenTradeExe.TakeProfit = resultOpenTrade.TakeProfit;
+                                            newOpenTradeExe.Taxes = 0;
+                                            newOpenTradeExe.TotalSwap = 0;
+                                            newOpenTradeExe.RefCommandID = resultOpenTrade.RefCommandID;
+                                            newOpenTradeExe.ClosePrice = tempClosePrice;
+                                            #endregion
+
+                                            #region NEW INSTANCE FOR SYMBOL LIST
+                                            newOpenTradeSymbol.AgentCommission = 0;
+                                            newOpenTradeSymbol.ClientCode = resultOpenTrade.ClientCode;
+                                            newOpenTradeSymbol.CloseTime = resultOpenTrade.OpenTime;
+                                            //newOpenTradeSymbol.CommandCode = listOnlineCommand[i].CommandCode;
+                                            newOpenTradeSymbol.Comment = resultOpenTrade.Comment;
+                                            newOpenTradeInvestor.Swap = resultOpenTrade.Swap;
+                                            newOpenTradeSymbol.Commission = resultOpenTrade.Commission;
+                                            newOpenTradeSymbol.ExpTime = resultOpenTrade.ExpTime;
+                                            newOpenTradeSymbol.FreezeMargin = 0;
+                                            //newOpenTradeSymbol.ID = listOnlineCommand[i].OnlineCommandID;
+                                            newOpenTradeSymbol.IsClose = true;
+                                            newOpenTradeSymbol.OpenPrice = resultOpenTrade.OpenPrice;
+                                            newOpenTradeSymbol.OpenTime = resultOpenTrade.OpenTime;
+                                            newOpenTradeSymbol.Profit = resultOpenTrade.Profit;
+                                            newOpenTradeSymbol.Size = resultOpenTrade.Size;
+                                            newOpenTradeSymbol.StopLoss = resultOpenTrade.StopLoss;
+                                            newOpenTradeSymbol.Swap = resultOpenTrade.Swap;
+                                            newOpenTradeSymbol.TakeProfit = resultOpenTrade.TakeProfit;
+                                            newOpenTradeSymbol.Taxes = 0;
+                                            newOpenTradeSymbol.TotalSwap = 0;
+                                            newOpenTradeSymbol.InsExe = newOpenTradeExe;
+                                            newOpenTradeSymbol.RefCommandID = resultOpenTrade.RefCommandID;
+                                            newOpenTradeSymbol.ClosePrice = tempClosePrice;
+                                            #endregion
+
+                                            #region NEW INSTANCE FOR INVESTOR LIST
+                                            newOpenTradeInvestor.AgentCommission = 0;
+                                            newOpenTradeInvestor.ClientCode = resultOpenTrade.ClientCode;
+                                            newOpenTradeInvestor.CloseTime = resultOpenTrade.OpenTime;
+                                            //newOpenTradeInvestor.CommandCode = listOnlineCommand[i].CommandCode;
+                                            newOpenTradeInvestor.Comment = resultOpenTrade.Comment;
+                                            newOpenTradeInvestor.Commission = resultOpenTrade.Commission;
+                                            newOpenTradeInvestor.Swap = resultOpenTrade.Swap;
+                                            newOpenTradeInvestor.ExpTime = resultOpenTrade.ExpTime;
+                                            newOpenTradeInvestor.FreezeMargin = 0;
+                                            //newOpenTradeInvestor.ID = listOnlineCommand[i].OnlineCommandID;
+                                            newOpenTradeInvestor.IsClose = false;
+                                            newOpenTradeInvestor.OpenPrice = resultOpenTrade.OpenPrice;
+                                            newOpenTradeInvestor.OpenTime = resultOpenTrade.OpenTime;
+                                            newOpenTradeInvestor.Profit = resultOpenTrade.Profit;
+                                            newOpenTradeInvestor.Size = resultOpenTrade.Size;
+                                            newOpenTradeInvestor.StopLoss = resultOpenTrade.StopLoss;
+                                            newOpenTradeInvestor.Swap = resultOpenTrade.Swap;
+                                            newOpenTradeInvestor.TakeProfit = resultOpenTrade.TakeProfit;
+                                            newOpenTradeInvestor.Taxes = 0;
+                                            newOpenTradeInvestor.TotalSwap = 0;
+                                            newOpenTradeInvestor.InsExe = newOpenTradeExe;
+                                            newOpenTradeInvestor.RefCommandID = resultOpenTrade.RefCommandID;
+                                            newOpenTradeInvestor.ClosePrice = tempClosePrice;
+                                            #endregion
+
+                                            #region BUILD CLIENT CODE
+                                            string clientCode = string.Empty;
+                                            clientCode = resultOpenTrade.Investor.Code + "_" + DateTime.Now.Ticks;
+                                            #endregion
+
+                                            newOpenTradeExe.ClientCode = clientCode;
+                                            newOpenTradeInvestor.ClientCode = clientCode;
+                                            newOpenTradeSymbol.ClientCode = clientCode;
+
+                                            newOpenTradeExe.CommandCode = resultOpenTrade.CommandCode;
+                                            newOpenTradeInvestor.CommandCode = resultOpenTrade.CommandCode;
+                                            newOpenTradeSymbol.CommandCode = resultOpenTrade.CommandCode;
+
+                                            //Add Command To Database
+                                            //                
+                                            int commandID = TradingServer.Facade.FacadeAddNewOpenTrade(newOpenTradeExe);
+
+                                            string commandCode = string.Empty;
+                                            //Call Function Update Command Code Of Command
+                                            //commandCode = TradingServer.Model.TradingCalculate.Instance.BuildCommandCode(commandID.ToString());
+                                            //TradingServer.Facade.FacadeUpdateCommandCode(commandID, commandCode);
+
+                                            //set id and command code
+                                            newOpenTradeExe.ID = commandID;
+                                            newOpenTradeInvestor.ID = commandID;
+                                            newOpenTradeSymbol.ID = commandID;
+
+                                            commandCode = resultOpenTrade.CommandCode;
+
+                                            if (commandID > 0)
+                                            {
+                                                //======================================
+                                                #region ADD COMMAND TO COMMAND EXECUTOR
+                                                if (Business.Market.CommandExecutor == null)
+                                                    Business.Market.CommandExecutor = new List<Business.OpenTrade>();
+
+                                                Business.Market.CommandExecutor.Add(newOpenTradeExe);
+                                                #endregion
+
+                                                #region ADD COMMAND TO SYMBOL LIST
+                                                if (Business.Market.SymbolList != null)
+                                                {
+                                                    int countSymbol = Business.Market.SymbolList.Count;
+                                                    for (int j = 0; j < countSymbol; j++)
+                                                    {
+                                                        if (Business.Market.SymbolList[j].Name.ToUpper().Trim() == resultOpenTrade.Symbol.Name.ToUpper().Trim())
+                                                        {
+                                                            if (Business.Market.SymbolList[j].CommandList == null)
+                                                                Business.Market.SymbolList[j].CommandList = new List<Business.OpenTrade>();
+
+                                                            Business.Market.SymbolList[j].CommandList.Add(newOpenTradeSymbol);
+
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                #endregion
+
+                                                #region ADD COMMAND TO INVESTOR LIST
+                                                if (Business.Market.InvestorList != null)
+                                                {
+                                                    int countInvestor = Business.Market.InvestorList.Count;
+                                                    for (int j = 0; j < countInvestor; j++)
+                                                    {
+                                                        if (Business.Market.InvestorList[j].Code == resultOpenTrade.Investor.Code)
+                                                        {
+                                                            if (Business.Market.InvestorList[j].CommandList == null)
+                                                                Business.Market.InvestorList[j].CommandList = new List<Business.OpenTrade>();
+
+                                                            Business.Market.InvestorList[j].CommandList.Add(newOpenTradeInvestor);
+
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                #endregion
+
+                                                string msg = string.Empty;
+                                                #region Map Command Server To Client
+                                                if (resultOpenTrade.IsServer)
+                                                {
+                                                    string Message = "AddCommandByManager$True,Add New Command Complete," + commandID + "," + resultOpenTrade.Investor.InvestorID + "," +
+                                                       resultOpenTrade.Symbol.Name + "," + resultOpenTrade.Size + "," + IsBuy + "," + resultOpenTrade.OpenTime + "," + resultOpenTrade.OpenPrice + "," +
+                                                       resultOpenTrade.StopLoss + "," + resultOpenTrade.TakeProfit + "," + resultOpenTrade.ClosePrice + "," + resultOpenTrade.Commission + "," +
+                                                       resultOpenTrade.Swap + "," + resultOpenTrade.Profit + "," + "Comment," + resultOpenTrade.ID + "," + commandType + "," + 1 + "," +
+                                                       resultOpenTrade.ExpTime + "," + resultOpenTrade.ClientCode + "," + commandCode + "," + resultOpenTrade.IsHedged + "," +
+                                                       resultOpenTrade.Type.ID + "," + resultOpenTrade.Margin + ",Open";
+
+                                                    if (resultOpenTrade.Investor.ClientCommandQueue == null)
+                                                        resultOpenTrade.Investor.ClientCommandQueue = new List<string>();
+
+                                                    //int countInvestor = resultOpenTrade.Investor.CountInvestorOnline(resultOpenTrade.Investor.InvestorID);
+                                                    //if (countInvestor > 0)
+                                                    resultOpenTrade.Investor.ClientCommandQueue.Add(Message);
+
+                                                    //SEND COMMAND TO CLIENT USING WEBSOCKET
+                                                    Business.Market.marketInstance.SendReponseAsyn(resultOpenTrade, Message);
+
+                                                    msg = Message;
+                                                }
+                                                else
+                                                {
+                                                    string Message = "AddCommand$True,Add New Command Complete," + commandID + "," + resultOpenTrade.Investor.InvestorID + "," +
+                                                        resultOpenTrade.Symbol.Name + "," + resultOpenTrade.Size + "," + IsBuy + "," + resultOpenTrade.OpenTime + "," +
+                                                        resultOpenTrade.OpenPrice + "," + resultOpenTrade.StopLoss + "," + resultOpenTrade.TakeProfit + "," +
+                                                        resultOpenTrade.ClosePrice + "," + resultOpenTrade.Commission + "," + resultOpenTrade.Swap + "," +
+                                                        resultOpenTrade.Profit + "," + "Comment," + resultOpenTrade.ID + "," + commandType + "," + 1 + "," +
+                                                        resultOpenTrade.ExpTime + "," + resultOpenTrade.ClientCode + "," + commandCode + "," +
+                                                        resultOpenTrade.IsHedged + "," + resultOpenTrade.Type.ID + "," + resultOpenTrade.Margin + ",Open";
+
+                                                    if (resultOpenTrade.Investor.ClientCommandQueue == null)
+                                                        resultOpenTrade.Investor.ClientCommandQueue = new List<string>();
+
+                                                    //int countInvestorOnline = resultOpenTrade.Investor.CountInvestorOnline(resultOpenTrade.Investor.InvestorID);
+                                                    //if (countInvestorOnline > 0)
+                                                        resultOpenTrade.Investor.ClientCommandQueue.Add(Message);
+
+                                                    //SEND COMMAND TO CLIENT USING WEBSOCKET
+                                                    Business.Market.marketInstance.SendReponseAsyn(resultOpenTrade, Message);
+
+                                                    msg = Message;
+                                                }
+                                                #endregion
+
+                                                TradingServer.Model.TradingCalculate.Instance.StreamFileRecive("[Message Notify Recive Make] - " + msg);
+
+                                                Business.Margin newMargin = new Margin();
+                                                newMargin = resultOpenTrade.Symbol.CalculationTotalMargin(resultOpenTrade.Investor.CommandList);
+                                                resultOpenTrade.Investor.Margin = newMargin.TotalMargin;
+                                                resultOpenTrade.Investor.FreezeMargin = newMargin.TotalFreezeMargin;
+
+                                                //NOTIFY INVESTOR TO MANAGER
+                                                TradingServer.Facade.FacadeSendNotifyManagerRequest(3, newOpenTradeExe.Investor);
+
+                                                //SEND NOTIFY TO MANAGER THEN ADD NEW ACCOUNT
+                                                TradingServer.Facade.FacadeSendNoticeManagerRequest(1, newOpenTradeExe);
+                                            }
+                                        }
+                                    }
+                                    break;
+                                #endregion
+
+                                #region NOTIFY CLOSE COMMAND
+                                case "NotifyCloseCommand":
+                                    {
+                                        Business.OpenTrade resultNotify = Business.Market.MapNotifyCloseCommand(subCommand[i]);
+
+                                        Business.OpenTrade Command = TradingServer.Facade.FacadeFindOpenTradeInSymbolListByRefID(resultNotify.RefCommandID);
+
+                                        if (Command.Investor == null || Command.Symbol == null || Command.Type == null)
+                                        {
+                                            TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify Failed] - " + subCommand[i]);
+                                            //result = Business.Market.GetNotifyMessage();
+                                            continue;
+                                        }
+
+                                        TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify] - " + subCommand[i]);
+
+                                        if (Command.ID > 0)
+                                        {
+                                            Command.ClosePrice = resultNotify.ClosePrice;
+
+                                            //if (resultNotify.Size == Command.Size)
+                                            //    Command.Size = resultNotify.Size;
+
+                                            Command.Size = resultNotify.Size;
+                                            Command.Profit = resultNotify.Profit;
+                                            Command.Swap = resultNotify.Swap;
+                                            Command.Commission = resultNotify.Commission;
+                                            Command.CloseTime = resultNotify.CloseTime;
+                                            Command.IsClose = true;
+
+                                            Command.Investor.UpdateCommand(Command);
+                                        }
+                                    }
+                                    break;
+                                #endregion
+
+                                #region NOTIFY UPDATE ACCOUNT
+                                case "NotifyUpdateAccount":
+                                    {
+                                        Business.Investor resultNotify = Business.Market.MapNotifyUpdateAccount(subCommand[i]);
+
+                                        if (resultNotify.InvestorID <= 0)
+                                        {
+                                            TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify Failed] - " + subCommand[i]);
+                                            continue;
+                                        }
+
+                                        TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify] - " + subCommand[i]);
+
+                                        if (Business.Market.InvestorList != null)
+                                        {
+                                            int countInvestor = Business.Market.InvestorList.Count;
+                                            for (int j = 0; j < countInvestor; j++)
+                                            {
+                                                if (Business.Market.InvestorList[j].Code.ToUpper().Trim() == resultNotify.Code.ToUpper().Trim())
+                                                {   
+                                                    Business.Market.InvestorList[j].AgentID = resultNotify.AgentID;
+                                                    Business.Market.InvestorList[j].Balance = resultNotify.Balance;
+                                                    Business.Market.InvestorList[j].Credit = resultNotify.Credit;
+                                                    Business.Market.InvestorList[j].IsDisable = resultNotify.IsDisable;
+                                                    Business.Market.InvestorList[j].TaxRate = resultNotify.TaxRate;
+                                                    Business.Market.InvestorList[j].Leverage = resultNotify.Leverage;
+                                                    Business.Market.InvestorList[j].Address = resultNotify.Address;
+                                                    Business.Market.InvestorList[j].Phone = resultNotify.Phone;
+                                                    Business.Market.InvestorList[j].City = resultNotify.City;
+                                                    Business.Market.InvestorList[j].Country = resultNotify.Country;
+                                                    Business.Market.InvestorList[j].Email = resultNotify.Email;
+                                                    Business.Market.InvestorList[j].ZipCode = resultNotify.ZipCode;
+                                                    Business.Market.InvestorList[j].RegisterDay = resultNotify.RegisterDay;
+                                                    Business.Market.InvestorList[j].InvestorComment = resultNotify.Comment;
+                                                    Business.Market.InvestorList[j].State = resultNotify.State;
+                                                    Business.Market.InvestorList[j].NickName = resultNotify.NickName;
+                                                    Business.Market.InvestorList[j].AllowChangePwd = resultNotify.AllowChangePwd;
+                                                    Business.Market.InvestorList[j].ReadOnly = resultNotify.ReadOnly;
+                                                    Business.Market.InvestorList[j].SendReport = resultNotify.SendReport;
+
+                                                    Investor.DBWInvestorInstance.UpdateInvestor(Business.Market.InvestorList[j]);
+
+                                                    Investor.DBWInvestorInstance.UpdateInvestorProfile(Business.Market.InvestorList[j]);
+
+                                                    string message = "IAC04332451";
+                                                    //int countInvestorOnline = Business.Market.InvestorList[j].CountInvestorOnline(Business.Market.InvestorList[j].InvestorID);
+                                                    //if (countInvestorOnline > 0)
+                                                        Business.Market.InvestorList[j].ClientCommandQueue.Add(message);
+
+                                                    //SEND COMMAND TO CLIENT USING WEBSOCKET
+                                                    Business.Market.marketInstance.SendReponseAsyn(Business.Market.InvestorList[j], message);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    break;
+                                #endregion
+
+                                #region NOTIFY UPDATE INFO ACCOUNT
+                                case "NotifyInfoAccount":
+                                    {
+                                        Business.Investor resultNotify = Business.Market.MapNotifyUpdateInfoAccount(subCommand[i]);
+
+                                        if (resultNotify.InvestorID <= 0)
+                                        {
+                                            TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify Failed] - " + subCommand[i]);
+                                            continue;
+                                        }
+
+                                        TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify] - " + subCommand[i]);
+
+                                        if (Business.Market.InvestorList != null)
+                                        {
+                                            int countInvestor = Business.Market.InvestorList.Count;
+                                            for (int j = 0; j < countInvestor; j++)
+                                            {
+                                                if (Business.Market.InvestorList[j].Code.ToUpper().Trim() == resultNotify.Code.ToUpper().Trim())
+                                                {
+                                                    Business.Market.InvestorList[j].Balance = resultNotify.Balance;
+                                                    Business.Market.InvestorList[j].Credit = resultNotify.Credit;
+                                                    Business.Market.InvestorList[j].Equity = resultNotify.Equity;
+                                                    Business.Market.InvestorList[j].Margin = resultNotify.Margin;
+                                                    Business.Market.InvestorList[j].FreeMargin = resultNotify.FreeMargin;
+                                                    Business.Market.InvestorList[j].MarginLevel = resultNotify.MarginLevel;
+
+                                                    TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Account] - Balance: " +
+                                                        Business.Market.InvestorList[j].Balance + " Equity: " + 
+                                                        Business.Market.InvestorList[j].Equity +
+                                                            " Margin: " + 
+                                                            Business.Market.InvestorList[j].Margin + " FreeMargin: " +
+                                                            Business.Market.InvestorList[j].FreeMargin + " Margin Level: " +
+                                                            Business.Market.InvestorList[j].MarginLevel);
+
+                                                    Investor.DBWInvestorInstance.UpdateBalanceAndCredit(Business.Market.InvestorList[j].InvestorID,
+                                                        Business.Market.InvestorList[j].Balance, Business.Market.InvestorList[j].Credit);
+
+                                                    string message = "IAC04332451";
+
+                                                    //int countInvestorOnline = Business.Market.InvestorList[j].CountInvestorOnline(Business.Market.InvestorList[j].InvestorID);
+                                                    //if (countInvestorOnline > 0)
+                                                        Business.Market.InvestorList[j].ClientCommandQueue.Add(message);
+
+                                                    Business.Market.marketInstance.SendReponseAsyn(Business.Market.InvestorList[j], message);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    break;
+                                #endregion
+
+                                #region NOTIFY DELETE COMMAND
+                                case "NotifyDeleteCommand":
+                                    {
+                                        int resultNotify = Business.Market.MapNotifyDeleteCommand(subCommand[i]);
+                                        if (resultNotify > 0)
+                                        {
+                                            Business.OpenTrade newOpenTrade = TradingServer.Facade.FacadeFindOpenTradeInSymbolListByRefID(resultNotify);
+
+                                            if (newOpenTrade.Investor == null || newOpenTrade.Symbol == null || newOpenTrade.Type == null)
+                                            {
+                                                TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify Failed] - " + subCommand[i]);
+                                                continue;
+                                            }
+
+                                            TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify] - " + subCommand[i]);
+
+                                            if (newOpenTrade.RefCommandID > 0)
+                                            {
+                                                bool isPending = TradingServer.Model.TradingCalculate.Instance.CheckIsPendingPosition(newOpenTrade.Type.ID);
+
+                                                if (isPending)
+                                                {
+                                                    newOpenTrade.IsClose = true;
+
+                                                    newOpenTrade.Investor.UpdateCommand(newOpenTrade);
+                                                }
+                                                else
+                                                {
+                                                    TradingServer.Facade.FacadeDeleteOpenTradeByManagerWithRefID(newOpenTrade.RefCommandID);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    break;
+                                #endregion
+
+                                #region NOTIFY UPDATE COMMAND
+                                case "NotifyUpdateCommand":
+                                    {
+                                        Business.OpenTrade resultNotify = Business.Market.MapNotifyUpdateCommand(subCommand[i]);
+
+                                        if (resultNotify.Investor == null || resultNotify.Symbol == null || resultNotify.Type == null)
+                                        {
+                                            TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify Failed] - " + subCommand[i]);
+                                            continue;
+                                        }
+
+                                        TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify] - " + subCommand[i]);
+
+                                        Business.OpenTrade newOpenTrade = TradingServer.Facade.FacadeFindOpenTradeInSymbolListByRefID(resultNotify.RefCommandID);
+
+                                        resultNotify.ID = newOpenTrade.ID;
+
+                                        int InvestorID = -1;
+                                        double profit = 0;
+
+                                        #region UPDATE ONLINE COMMAND IN COMMAND EXECUTOR
+                                        if (Business.Market.CommandExecutor != null)
+                                        {
+                                            int countCommandExe = Business.Market.CommandExecutor.Count;
+                                            for (int m = 0; m < countCommandExe; m++)
+                                            {
+                                                if (Business.Market.CommandExecutor[m].ID == resultNotify.ID)
+                                                {
+                                                    //InvestorID = 0 ==> set new investor id
+                                                    if (Business.Market.CommandExecutor[m].Investor != null)
+                                                        InvestorID = Business.Market.CommandExecutor[m].Investor.InvestorID;
+
+                                                    #region UPDATE COMMAND OF INVESTOR IN COMMAND EXECUTOR
+                                                    //SET NEW VALUE FOR ONLINE COMMAND CURRENT
+                                                    Business.Market.CommandExecutor[m].Commission = resultNotify.Commission;
+                                                    Business.Market.CommandExecutor[m].ExpTime = resultNotify.ExpTime;
+                                                    Business.Market.CommandExecutor[m].OpenPrice = resultNotify.OpenPrice;
+                                                    Business.Market.CommandExecutor[m].OpenTime = resultNotify.OpenTime;
+                                                    Business.Market.CommandExecutor[m].StopLoss = resultNotify.StopLoss;
+                                                    Business.Market.CommandExecutor[m].Swap = resultNotify.Swap;
+                                                    Business.Market.CommandExecutor[m].TakeProfit = resultNotify.TakeProfit;
+                                                    Business.Market.CommandExecutor[m].Comment = resultNotify.Comment;
+                                                    Business.Market.CommandExecutor[m].Size = resultNotify.Size;
+
+                                                    bool isPending = TradingServer.Model.TradingCalculate.Instance.CheckIsPendingPosition(Business.Market.CommandExecutor[m].Type.ID);
+
+                                                    if (!isPending)
+                                                    {
+                                                        Business.Market.CommandExecutor[m].CalculatorProfitCommand(Business.Market.CommandExecutor[m]);
+                                                        profit = Business.Market.CommandExecutor[m].Symbol.ConvertCurrencyToUSD(Business.Market.CommandExecutor[m].Symbol.Currency,
+                                                            Business.Market.CommandExecutor[m].Profit, false, Business.Market.CommandExecutor[m].SpreaDifferenceInOpenTrade,
+                                                            Business.Market.CommandExecutor[m].Symbol.Digit);
+                                                        Business.Market.CommandExecutor[m].Profit = profit;
+                                                    }
+
+                                                    //CALL FUNCTION UPDATE ONLINE COMMAND IN DATABASE     
+                                                    bool ResultUpdate = false;
+                                                    ResultUpdate = resultNotify.UpdateOnlineCommand(Business.Market.CommandExecutor[m]);
+
+                                                    bool IsBuy = false;
+                                                    if (Business.Market.CommandExecutor[m].Type.ID == 1 ||
+                                                        Business.Market.CommandExecutor[m].Type.ID == 7 ||
+                                                        Business.Market.CommandExecutor[m].Type.ID == 9 ||
+                                                        Business.Market.CommandExecutor[m].Type.ID == 11)
+                                                        IsBuy = true;
+
+                                                    #region MAP COMMAND TO CLIENT
+                                                    //SEND NOTIFY TO CLIENT
+                                                    string Message = "UpdateCommand$True,UPDATE COMMAND BY MANAGER COMPLETE," + Business.Market.CommandExecutor[m].ID + "," +
+                                                                        Business.Market.CommandExecutor[m].Investor.InvestorID + "," +
+                                                                        Business.Market.CommandExecutor[m].Symbol.Name + "," +
+                                                                        Business.Market.CommandExecutor[m].Size + "," + IsBuy + "," +
+                                                                        Business.Market.CommandExecutor[m].OpenTime + "," +
+                                                                        Business.Market.CommandExecutor[m].OpenPrice + "," +
+                                                                        Business.Market.CommandExecutor[m].StopLoss + "," +
+                                                                        Business.Market.CommandExecutor[m].TakeProfit + "," +
+                                                                        Business.Market.CommandExecutor[m].ClosePrice + "," +
+                                                                        Business.Market.CommandExecutor[m].Commission + "," +
+                                                                        Business.Market.CommandExecutor[m].Swap + "," +
+                                                                        Business.Market.CommandExecutor[m].Profit + "," + 
+                                                                        Business.Market.CommandExecutor[m].Comment + "," +
+                                                                        Business.Market.CommandExecutor[m].ID + "," +
+                                                                        Business.Market.CommandExecutor[m].Type.Name + "," +
+                                                                        1 + "," + Business.Market.CommandExecutor[m].ExpTime + "," +
+                                                                        Business.Market.CommandExecutor[m].ClientCode + "," +
+                                                                        Business.Market.CommandExecutor[m].CommandCode + "," +
+                                                                        Business.Market.CommandExecutor[m].IsHedged + "," +
+                                                                        Business.Market.CommandExecutor[m].Type.ID + "," +
+                                                                        Business.Market.CommandExecutor[m].Margin + ",Update";
+
+                                                    if (Business.Market.CommandExecutor[m].Investor.ClientCommandQueue == null)
+                                                        Business.Market.CommandExecutor[m].Investor.ClientCommandQueue = new List<string>();
+
+                                                    //int countInvestorOnline = Business.Market.CommandExecutor[m].Investor.CountInvestorOnline(Business.Market.CommandExecutor[m].Investor.InvestorID);
+                                                    //if (countInvestorOnline > 0)
+                                                        Business.Market.CommandExecutor[m].Investor.ClientCommandQueue.Add(Message);
+
+                                                    //SEND COMMAND TO CLIENT USING WEBSOCKET
+                                                    Business.Market.marketInstance.SendReponseAsyn(Business.Market.CommandExecutor[m].Investor, Message);
+                                                    #endregion
+
+                                                    //SEND COMMAND TO MANAGER
+                                                    TradingServer.Facade.FacadeSendNoticeManagerRequest(1, Business.Market.CommandExecutor[m]);
+                                                    break;
+                                                    #endregion
+                                                }
+                                            }
+                                        }
+                                        #endregion
+
+                                        #region UPDATE ONLINE COMMAND IN INVESTOR LIST
+                                        if (Business.Market.InvestorList != null)
+                                        {
+                                            int countInvestor = Business.Market.InvestorList.Count;
+                                            for (int m = 0; m < countInvestor; m++)
+                                            {
+                                                if (Business.Market.InvestorList[m].InvestorID == InvestorID)
+                                                {
+                                                    if (Business.Market.InvestorList[m].CommandList != null)
+                                                    {
+                                                        int countCommand = Business.Market.InvestorList[m].CommandList.Count;
+                                                        for (int k = 0; k < countCommand; k++)
+                                                        {
+                                                            if (Business.Market.InvestorList[m].CommandList[k].ID == resultNotify.ID)
+                                                            {
+                                                                //SET NEW VALUE FOR ONLINE COMMAND CURRENT
+                                                                Business.Market.InvestorList[m].CommandList[k].Commission = resultNotify.Commission;
+                                                                Business.Market.InvestorList[m].CommandList[k].ExpTime = resultNotify.ExpTime;
+                                                                Business.Market.InvestorList[m].CommandList[k].OpenPrice = resultNotify.OpenPrice;
+                                                                Business.Market.InvestorList[m].CommandList[k].OpenTime = resultNotify.OpenTime;
+                                                                Business.Market.InvestorList[m].CommandList[k].StopLoss = resultNotify.StopLoss;
+                                                                Business.Market.InvestorList[m].CommandList[k].Swap = resultNotify.Swap;
+                                                                Business.Market.InvestorList[m].CommandList[k].TakeProfit = resultNotify.TakeProfit;
+                                                                Business.Market.InvestorList[m].CommandList[k].Comment = resultNotify.Comment;
+                                                                Business.Market.InvestorList[m].CommandList[k].Size = resultNotify.Size;
+                                                                Business.Market.InvestorList[m].CommandList[k].Profit = profit;
+
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        #endregion
+
+                                        #region UPDATE ONLINE COMMAND IN SYMBOL LIST
+                                        if (Business.Market.SymbolList != null)
+                                        {
+                                            int countSymbol = Business.Market.SymbolList.Count;
+                                            for (int m = 0; m < countSymbol; m++)
+                                            {
+                                                if (Business.Market.SymbolList[m].Name == resultNotify.Symbol.Name)
+                                                {
+                                                    if (Business.Market.SymbolList[m].CommandList != null)
+                                                    {
+                                                        int countCommand = Business.Market.SymbolList[m].CommandList.Count;
+                                                        for (int k = 0; k < countCommand; k++)
+                                                        {
+                                                            if (Business.Market.SymbolList[m].CommandList[k].ID == resultNotify.ID)
+                                                            {
+                                                                if (Business.Market.SymbolList[m].CommandList[k].Type.ID == resultNotify.Type.ID)
+                                                                {
+                                                                    //SET NEW VALUE FOR ONLINE COMMAND CURRENT
+                                                                    Business.Market.SymbolList[m].CommandList[k].Commission = resultNotify.Commission;
+                                                                    Business.Market.SymbolList[m].CommandList[k].ExpTime = resultNotify.ExpTime;
+                                                                    Business.Market.SymbolList[m].CommandList[k].OpenPrice = resultNotify.OpenPrice;
+                                                                    Business.Market.SymbolList[m].CommandList[k].OpenTime = resultNotify.OpenTime;
+                                                                    Business.Market.SymbolList[m].CommandList[k].StopLoss = resultNotify.StopLoss;
+                                                                    Business.Market.SymbolList[m].CommandList[k].Swap = resultNotify.Swap;
+                                                                    Business.Market.SymbolList[m].CommandList[k].TakeProfit = resultNotify.TakeProfit;
+                                                                    Business.Market.SymbolList[m].CommandList[k].Comment = resultNotify.Comment;
+                                                                    Business.Market.SymbolList[m].CommandList[k].Size = resultNotify.Size;
+                                                                    //Business.Market.SymbolList[i].CommandList[j].Profit = profit;
+                                                                }
+                                                                else
+                                                                {
+                                                                    Business.Market.SymbolList[m].CommandList[k].Type = resultNotify.Type;
+                                                                    Business.Market.SymbolList[m].CommandList[k].IsClose = false;
+                                                                    Business.Market.SymbolList[m].CommandList[k].Investor.UpdateCommand(Business.Market.SymbolList[m].CommandList[k]);
+                                                                }
+
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        #endregion
+
+
+                                        
+                                        #region Find In List Symbol And Update Take Profit, Stop Loss
+                                        //if (Business.Market.SymbolList != null)
+                                        //{
+                                        //    bool Flag = false;
+                                        //    int countSymbol = Business.Market.SymbolList.Count;
+                                        //    for (int j = 0; j < countSymbol; j++)
+                                        //    {
+                                        //        if (Flag)
+                                        //            break;
+
+                                        //        if (Business.Market.SymbolList[j].CommandList != null)
+                                        //        {
+                                        //            int countCommand = Business.Market.SymbolList[j].CommandList.Count;
+                                        //            for (int n = 0; n < Business.Market.SymbolList[j].CommandList.Count; n++)
+                                        //            {
+                                        //                if (Business.Market.SymbolList[j].CommandList[n].ID == resultNotify.ID)
+                                        //                {
+                                        //                    if (Business.Market.SymbolList[j].CommandList[n].Type.ID != resultNotify.Type.ID)
+                                        //                    {
+                                        //                        Business.Market.SymbolList[j].CommandList[n].Type = resultNotify.Type;
+                                        //                        Business.Market.SymbolList[j].CommandList[n].IsClose = false;
+                                        //                        Business.Market.SymbolList[j].CommandList[n].Investor.UpdateCommand(Business.Market.SymbolList[j].CommandList[n]);
+                                        //                    }
+                                        //                    else
+                                        //                    {
+                                        //                        Business.Market.SymbolList[j].CommandList[n].StopLoss = resultNotify.StopLoss;
+                                        //                        Business.Market.SymbolList[j].CommandList[n].TakeProfit = resultNotify.TakeProfit;
+                                        //                        Business.Market.SymbolList[j].CommandList[n].Comment = resultNotify.Comment;
+                                        //                        Business.Market.SymbolList[j].CommandList[n].OpenPrice = resultNotify.OpenPrice;
+                                        //                        Business.Market.SymbolList[j].CommandList[n].Size = resultNotify.Size;
+                                        //                        Business.Market.SymbolList[j].CommandList[n].Swap = resultNotify.Swap;
+                                        //                        Business.Market.SymbolList[j].CommandList[n].Commission = resultNotify.Commission;
+
+                                        //                        #region INSERT SYSTEM LOG AFTER MODIFY COMMAND
+                                        //                        //string Content = string.Empty;
+                                        //                        //Content = "'" + resultNotify.Investor.Code + "': modified #" + Command.CommandCode + " " + mode + " " + size + " " + Command.Symbol.Name + " at " +
+                                        //                        //    openPrice + " sl: " + stopLoss + " tp: " + takeProfit + " (" + bid + "/" + ask + ")";
+
+                                        //                        //TradingServer.Facade.FacadeAddNewSystemLog(5, Content, comment, Command.Investor.IpAddress, Command.Investor.Code);
+                                        //                        #endregion
+
+                                        //                        TradingServer.Facade.FacadeUpdateOnlineCommand(resultNotify.Investor.InvestorID, resultNotify.ID, resultNotify.Commission,
+                                        //                            resultNotify.ExpTime, resultNotify.OpenPrice, resultNotify.OpenTime, resultNotify.StopLoss, resultNotify.Swap,
+                                        //                            resultNotify.TakeProfit, resultNotify.Symbol.Name, resultNotify.Taxes, resultNotify.Comment, resultNotify.AgentCommission,
+                                        //                            resultNotify.Size);
+
+                                        //                        //TradingServer.Facade.FacadeUpdateOnlineCommandWithTakeProfit(resultNotify.TakeProfit, resultNotify.StopLoss,
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].ID, resultNotify.Comment,
+                                        //                        //    resultNotify.OpenPrice);
+
+                                        //                        //#region MAP COMMAND TO CLIENT
+                                        //                        //Message = "UpdateCommand$True,UPDATE COMMAND COMPLETE," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].ID + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].Investor.InvestorID + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].Symbol.Name + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].Size + "," + false + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].OpenTime + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].OpenPrice + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].StopLoss + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].TakeProfit + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].ClosePrice + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].Commission + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].Swap + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].Profit + "," + "Comment," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].ID + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].Type.Name + "," +
+                                        //                        //    1 + "," + Business.Market.SymbolList[j].CommandList[n].ExpTime + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].ClientCode + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].CommandCode + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].IsHedged + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].Type.ID + "," +
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].Margin + ",Update";
+
+                                        //                        ////If Client Update Command Then Add Message To Client Message
+                                        //                        //if (Business.Market.SymbolList[j].CommandList[n].Investor.ClientCommandQueue == null)
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].Investor.ClientCommandQueue = new List<string>();
+
+                                        //                        //int countInvestor = Business.Market.SymbolList[j].CommandList[n].Investor.CountInvestorOnline(Business.Market.SymbolList[j].CommandList[n].Investor.InvestorID);
+                                        //                        //if (countInvestor > 0)
+                                        //                        //    Business.Market.SymbolList[j].CommandList[n].Investor.ClientCommandQueue.Add(Message);
+
+                                        //                        //Business.Market.marketInstance.SendReponseAsyn(Business.Market.SymbolList[j].CommandList[n], Message);
+                                        //                        //#endregion
+
+                                        //                        ////update result notify 
+                                        //                        //resultNotify.ID = Business.Market.SymbolList[j].CommandList[n].ID;
+
+                                        //                        //Business.Market.SymbolList[j].CommandList[n].IsClose = false;
+                                        //                        //Business.Market.SymbolList[j].CommandList[n].Investor.UpdateCommand(Business.Market.SymbolList[j].CommandList[n]);
+                                        //                    }
+
+                                        //                    Flag = true;
+                                        //                    break;
+                                        //                }
+                                        //            }
+                                        //        }
+                                        //    }
+                                        //}
+                                        #endregion
+
+                                        #region FIND IN LIST COMMAND EXECUTOR AND UPDATE TAKE PROFIT , STOP LOSS
+                                        //if (Business.Market.CommandExecutor != null)
+                                        //{
+                                        //    int countExe = Business.Market.CommandExecutor.Count;
+                                        //    for (int j = 0; j < countExe; j++)
+                                        //    {
+                                        //        if (Business.Market.CommandExecutor[j].ID == resultNotify.ID)
+                                        //        {
+                                        //            if (Business.Market.CommandExecutor[j].TakeProfit != resultNotify.TakeProfit ||
+                                        //                Business.Market.CommandExecutor[j].StopLoss != resultNotify.StopLoss)
+                                        //            {
+                                        //                Business.Market.CommandExecutor[j].TakeProfit = resultNotify.TakeProfit;
+                                        //                Business.Market.CommandExecutor[j].StopLoss = resultNotify.StopLoss;
+                                        //                Business.Market.CommandExecutor[j].Comment = resultNotify.Comment;
+                                        //                Business.Market.CommandExecutor[i].OpenPrice = resultNotify.OpenPrice;
+                                        //                Business.Market.CommandExecutor[i].Swap = resultNotify.Swap;
+                                        //                Business.Market.CommandExecutor[i].Commission = resultNotify.Commission;
+
+                                        //                break;
+                                        //            }
+
+                                        //            break;
+                                        //        }
+                                        //    }
+                                        //}
+                                        #endregion
+                                    }
+                                    break;
+                                #endregion
+
+                                case "NotifyConnectMT4":
+                                    {
+                                        TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify] - " + subCommand[i]);
+
+                                        Business.Market.StatusConnect = true;
+                                    }
+                                    break;
+
+                                case "NotifyDisconnectMT4":
+                                    {
+                                        TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Notify] - " + subCommand[i]);
+
+                                        Business.Market.StatusConnect = false;
+
+                                        if (Business.Market.InvestorList != null)
+                                        {
+                                            int countInvestor = Business.Market.InvestorList.Count;
+                                            for (int j = 0; j < countInvestor; j++)
+                                            {
+                                                if (Business.Market.InvestorList[j].IsOnline)
+                                                {
+                                                    string message = "OLOFF14790251";
+                                                    //int countInvestorOnline = Business.Market.InvestorList[j].CountInvestorOnline(Business.Market.InvestorList[j].InvestorID);
+                                                    //if (countInvestorOnline > 0)
+                                                        Business.Market.InvestorList[j].ClientCommandQueue.Add(message);
+
+                                                    //SEND COMMAND TO CLIENT USING WEBSOCKET
+                                                    Business.Market.marketInstance.SendReponseAsyn(Business.Market.InvestorList[j], message);
+                                                }
+
+                                                Business.Market.InvestorList[j].IsFirstLogin = true;
+                                            }
+                                        }
+                                    }
+                                    break;
+
+                                default:
+                                    {
+                                        if (!string.IsNullOrEmpty(subCommand[i]))
+                                        {
+                                            string msg = subCommand[i];
+                                            string temp = "test";
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+
+                    result = Business.Market.GetNotifyMessage();
+
+                    System.Threading.Thread.Sleep(50);
+                }
+
+                System.Threading.Thread.Sleep(100);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private static string GetNotifyMessage()
+        {
+            string result = string.Empty;
+            if (Business.Market.NotifyMessageFromMT4 != null && Business.Market.NotifyMessageFromMT4.Count > 0)
+            {
+                result = Business.Market.NotifyMessageFromMT4[0];
+                Business.Market.NotifyMessageFromMT4.RemoveAt(0);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static void ProcessTickQueueAgent()
+        {
+            string result = string.Empty;
+            while (Business.Market.IsProcessTickAgent)
+            {
+                result = Business.Market.marketInstance.GetTickQueueAgent();
+                while (!string.IsNullOrEmpty(result))
+                {
+                    if (Business.Market.ListAgentConfig != null)
+                    {
+                        int count = Business.Market.ListAgentConfig.Count;
+                        for (int i = 0; i < count; i++)
+                        {
+                            try
+                            {
+                                ASCIIEncoding encoding = new ASCIIEncoding();
+                                string postData = "js=";
+
+                                postData += result;
+
+                                byte[] data = encoding.GetBytes(postData);
+
+                                HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(Business.Market.ListAgentConfig[i].DomainAccess);
+                                myRequest.Method = "POST";
+                                myRequest.ContentType = "application/x-www-form-urlencoded";
+                                myRequest.ContentLength = data.Length;
+
+                                Stream newStream = myRequest.GetRequestStream();
+
+                                //Send the data
+                                newStream.Write(data, 0, data.Length);
+                                newStream.Close();
+                            }
+                            catch (Exception ex)
+                            {
+
+                            }
+                        }
+                    }
+
+                    result = Business.Market.marketInstance.GetTickQueueAgent();
+                }
+
+                System.Threading.Thread.Sleep(1000);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private string GetTickQueueAgent()
+        {
+            string result = string.Empty;
+
+            if (Business.Market.ListTickQueueAgent != null && Business.Market.ListTickQueueAgent.Count > 0)
+            {
+                int count = Business.Market.ListTickQueueAgent.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (Business.Market.ListTickQueueAgent[0] != null)
+                    {
+                        result += Business.Market.ListTickQueueAgent[0] + "|";
+                        Business.Market.ListTickQueueAgent.RemoveAt(0);
+                    }
+                    else
+                    {
+                        Business.Market.ListTickQueueAgent.RemoveAt(0);
+                    }
+                }
+            }
+
+            if (result.EndsWith("|"))
+                result = result.Remove(result.Length - 1, 1);
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static void ProcessNotifyQueueAgent()
+        {
+            Business.AgentNotify result = null;
+            while (Business.Market.IsProcessNotifyAgent)
+            {
+                result = Business.Market.marketInstance.GetNotifyQueueAgent();
+                while (result != null)
+                {
+                    if (result.InstanceAgent != null)
+                    {
+                        try
+                        {
+                            if (Business.Market.ListAgentConfig != null)
+                            {
+                                int count = Business.Market.ListAgentConfig.Count;
+                                for (int i = 0; i < count; i++)
+                                {
+                                    if (Business.Market.IsConnectAgent)
+                                    {
+                                        ASCIIEncoding encoding = new ASCIIEncoding();
+                                        string postData = "js=";
+
+                                        postData += result.NotifyMessage;
+
+                                        byte[] data = encoding.GetBytes(postData);
+
+                                        HttpWebRequest myRequest = (HttpWebRequest)WebRequest.Create(Business.Market.ListAgentConfig[i].DomainAccess);
+                                        myRequest.Timeout = 60000;
+                                        myRequest.Method = "POST";
+                                        myRequest.ContentType = "application/x-www-form-urlencoded";
+                                        myRequest.ContentLength = data.Length;
+
+                                        Stream newStream = myRequest.GetRequestStream();
+
+                                        //Send the data
+                                        newStream.Write(data, 0, data.Length);
+                                        newStream.Close();
+                                    }
+                                    else
+                                    {
+                                        string[] subValue = result.NotifyMessage.Split('$');
+                                        if (subValue[0] == "CloseCommandByManager" || subValue[0] == "CloseCommand")
+                                        {
+                                            Business.Market.BKListNotifyQueueAgent.Add(result);
+                                            TradingServer.Facade.FacadeAddNewSystemLog(6, result.NotifyMessage, "[Debug BKCommand]", "", "");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            
+                        }
+                    }
+
+                    result = Business.Market.marketInstance.GetNotifyQueueAgent();
+                }
+
+                System.Threading.Thread.Sleep(1000);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private Business.AgentNotify GetNotifyQueueAgent()
+        {
+            Business.AgentNotify result = null;
+            if (Business.Market.ListNotifyQueueAgent != null && Business.Market.ListNotifyQueueAgent.Count > 0)
+            {
+                if (Business.Market.ListNotifyQueueAgent[0] != null)
+                {
+                    result = Business.Market.ListNotifyQueueAgent[0];
+                    Business.Market.ListNotifyQueueAgent.RemoveAt(0);
+                }
+                else
+                {
+                    Business.Market.ListNotifyQueueAgent.RemoveAt(0);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        internal static void ProcessSaveStatement()
+        {
+            Business.Statement result = null;
+
+            while (Business.Market.IsProcessSaveStatement)
+            {
+                result = Business.Market.marketInstance.GetStatement();
+
+                while (result != null)
+                {
+                    //PROCESS SAVE TO DATABASE
+                    Business.Statement.Instance.AddNewStatement(result);
+
+                    result = Business.Market.marketInstance.GetStatement();
+
+                    System.Threading.Thread.Sleep(5);
+                }
+
+                System.Threading.Thread.Sleep(1000);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private Business.Statement GetStatement()
+        {
+            Business.Statement result = null;
+
+            if (Business.Market.ListStatement != null && Business.Market.ListStatement.Count > 0)
+            {
+                if (Business.Market.ListStatement[0] != null)
+                {
+                    result = Business.Market.ListStatement[0];
+                    Business.Market.ListStatement.RemoveAt(0);
+                }
+                else
+                    Business.Market.ListStatement.RemoveAt(0);
+            }
+
+            return result;
+        }
+    }
+}

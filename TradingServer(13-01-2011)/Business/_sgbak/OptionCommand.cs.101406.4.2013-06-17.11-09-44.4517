@@ -1,0 +1,109 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace TradingServer.Business
+{
+    public class OptionCommand : IPresenter.IMarketArea
+    {
+        public IPresenter.AddCommandDelegate AddCommandNotify { get; set; }
+        public int IMarketAreaID { get; set; }
+        public Market MarketContainer { get; set; }
+        List<TradeType> IPresenter.IMarketArea.Type { get; set; }
+        public string IMarketAreaName { get; set; }
+        public List<Symbol> ListSymbol { get; set; }
+        public List<ParameterItem> MarketAreaConfig { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        public void AddCommand(OpenTrade Command)
+        {
+            return;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        public void CloseCommand(OpenTrade Command)
+        {
+            return;
+        }
+
+        public void MultiCloseCommand(OpenTrade Command)
+        {
+            return;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        public void MultiUpdateCommand(OpenTrade Command)
+        {
+            return;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        /// <returns></returns>
+        public OpenTrade CalculateCommand(OpenTrade Command)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        /// <returns></returns>
+        public IPresenter.CloseCommandDelegate CloseCommandNotify(OpenTrade Command)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Cmd"></param>
+        /// <returns></returns>
+        public IPresenter.SendClientCmdDelegate SendClientCmdDelegate(string Cmd)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="initStatus"></param>
+        /// <returns></returns>
+        public IPresenter.InitServerDelegate CheckStatusInitServer(InitStatus initStatus)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Tick"></param>
+        /// <param name="RefSymbol"></param>
+        public void SetTickValueNotify(Tick Tick, Symbol RefSymbol)
+        {
+            return;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Command"></param>
+        public void UpdateCommand(OpenTrade Command)
+        {
+            return;
+        }
+    }
+}

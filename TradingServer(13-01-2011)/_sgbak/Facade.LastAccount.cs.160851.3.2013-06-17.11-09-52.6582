@@ -1,0 +1,91 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace TradingServer
+{
+    public static partial class Facade
+    {
+        #region CREATE INSTANCE LAST BALANCE
+        private static Business.LastBalance _instanceLastAccount;
+        internal static Business.LastBalance InstanceLastAccount
+        {
+            get
+            {
+                if (Facade._instanceLastAccount == null)
+                    Facade._instanceLastAccount = new Business.LastBalance();
+
+                return Facade._instanceLastAccount;
+            }
+        }
+        #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static List<Business.LastBalance> FacadeGetData()
+        {
+            return Facade.InstanceLastAccount.GetAllData();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static int FacadeAddNewLastAccount(Business.LastBalance value)
+        {
+            return Facade.InstanceLastAccount.AddNewLastAcount(value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="investorID"></param>
+        /// <param name="timeStart"></param>
+        /// <param name="timeEnd"></param>
+        /// <returns></returns>
+        public static Business.LastBalance FacadeGetLastAccountByTime(int investorID, DateTime timeStart, DateTime timeEnd)
+        {
+            return Facade.InstanceLastAccount.GetLastAccountByDateTime(investorID, timeStart, timeEnd);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="listInvestorID"></param>
+        /// <param name="timeStart"></param>
+        /// <param name="timeEnd"></param>
+        /// <returns></returns>
+        public static List<Business.LastBalance> FacadeGetLastBalanceByTimeListInvestor(List<int> listInvestorID, DateTime timeStart, DateTime timeEnd)
+        {
+            return Facade.InstanceLastAccount.GetLastAccountByTimeInvestorList(listInvestorID, timeStart, timeEnd);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="listInvestorID"></param>
+        /// <param name="timeStart"></param>
+        /// <param name="timeEnd"></param>
+        /// <returns></returns>
+        public static List<Business.LastBalance> FacadeGetLastBalanceByTimeListInvestor(Dictionary<int, string> listInvestorID, DateTime timeStart, DateTime timeEnd)
+        {
+            return Facade.InstanceLastAccount.GetLastAccountByTimeInvestorList(listInvestorID, timeStart, timeEnd);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="listInvestorID"></param>
+        /// <param name="timeStart"></param>
+        /// <param name="timeEnd"></param>
+        /// <returns></returns>
+        public static List<Business.LastBalance> FacadeGetLastBalanceByTimeInvestor(Dictionary<int, string> listInvestorID, DateTime timeStart, DateTime timeEnd)
+        {
+            return Facade.InstanceLastAccount.GetLastAccountByTimeInvestor(listInvestorID, timeStart, timeEnd);
+        }
+    }
+}

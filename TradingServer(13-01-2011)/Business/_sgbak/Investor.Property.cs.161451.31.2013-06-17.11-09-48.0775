@@ -1,0 +1,158 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using SuperWebSocket;
+
+namespace TradingServer.Business
+{
+    public partial class Investor : IPresenter.ICalculatorClient
+    {
+        public List<Business.OpenTrade> CommandList { get; set; }
+        public List<Business.OpenTrade> BinaryCommandList { get; set; }
+        public List<Business.OpenTrade> UpdateCommands { get; set; }
+        public List<Business.IGroupSecurity> ListIGroupSecurity { get; set; }
+        public List<Business.IGroupSymbol> ListIGroupSymbol { get; set; }
+        public List<Business.Symbol> ListSymbol { get; set; }
+        public List<Business.PriceAlert> AlertQueue { get; set; }
+        public List<Business.Tick> TickInvestor { get; set; }
+
+        public int InvestorID { get; set; }
+        public int InvestorIndex { get; set; } 
+        public string InvestorStatusCode { get; set; }
+        public string IpAddress { get; set; }
+        public int InvestorStatusID { get; set; }
+        public Business.InvestorGroup InvestorGroupInstance { get; set; }
+        public Business.ClientConfig ClientConfigInstance { get; set; }
+        public int InvestorProfileID { get; set; }
+        public string AgentID { get; set; }
+        public string Address { get; set; }
+        public string City { get; set; }
+        public string Code { get; set; }
+        public string Country { get; set; }
+        public string Email { get; set; }
+        public double Equity { get; set; }
+        public string FirstName { get; set; }
+        public double FreeMargin { get; set; }        
+        public bool IsCalculating { get; set; }
+        public static bool IsInProcess { get; set; }
+        public bool IsOnline { get; set; }
+        public bool IsLogout { get; set; }
+        public DateTime LastConnectTime { get; set; }
+        public double Margin { get; set; }
+        public double FreezeMargin { get; set; }
+        public double MarginLevel { get; set; }
+        public string NickName { get; set; }
+        public string Phone { get; set; }
+        public string PrimaryPwd { get; set; }        
+        public double Profit { get; set; }
+        public double TotalProfit { get; set; }
+        public double TotalNewProfit { get; set; }
+        public double DeltaProfit { get; set; }
+        public string ReadOnlyPwd { get; set; }
+        public string SecondAddress { get; set; }
+        public string State { get; set; }
+        public string StatusCode { get; set; }
+        public string ZipCode { get; set; }
+        public double Balance { get; set; }
+        public double Credit { get; set; }
+        public string PhonePwd { get; set; }
+        public bool IsDisable { get; set; }
+        public double TaxRate { get; set; }
+        public double Leverage { get; set; }
+        public double LeverageInvestorGroup { get; set; }
+        public string InvestorCommand { get; set; }
+        public bool AllowChangePwd { get; set; }
+        public bool ReadOnly { get; set; }
+        public bool IsReadOnly { get; set; }
+        public bool SendReport { get; set; }
+        public double PreviousLedgerBalance { get; set; }
+        public DateTime RegisterDay { get; set; }
+        public List<string> ClientCommandQueue { get; set; }
+        public List<Business.BackupQueue> BackupQueue { get; set; }
+        public List<string> ClientBinaryQueue { get; set; }
+        public int numTimeOut { get; set; }
+        public string UserConfig { get; set; }
+        public string UserConfigIpad { get; set; }
+        public string UserConfigIphone { get; set; }
+        public int NumCheck { get; set; }
+        public string LoginKey { get; set; }
+        public Business.TypeLogin LoginType { get; set; }
+        public bool InLogin { get; set; }
+        public string InvestorComment { get; set; }
+        public string IDPassport { get; set; }
+        public string NotifyError { get; set; }
+        public int AgentRefID { get; set; }
+        public DateTime TimeWarningMarginCall { get; set; }
+
+        //PROPERTY FLOATINGPL AND MONTH VOLUME FOR AGENT SERVER
+        public double FloatingPL { get; set; }
+        public double MonthVolume { get; set; }
+        public DateTime TimeSave { get; set; }
+
+        /// <summary>
+        /// COMMAND ID OF MT4 SYSTEM REFERENCE TO ET5
+        /// </summary>
+        public int RefInvestorID { get; set; }
+        public bool IsFirstLogin { get; set; }
+
+        //public WebSocketSession SessionInstance { get; set; }
+        public List<Business.SessionWebSocket> SessionInstance { get; set; }
+
+        /// <summary>
+        /// TYPE : 1 USING AJAX - TYPE : 2 USING WEBSOCKET
+        /// </summary>
+        public int ConnectType { get; set; }
+
+        #region Implement Interface ICalculatorClient
+        public string Comment { get; set; }
+        public TaskComplete TaskWork { get; set; }
+        public TaskDelegate TaskJob { get; set; }
+        public string TaskName { get; set; }
+        public bool IsActive { get; set; }
+        #endregion        
+
+        public int numCheckInsertLog { get; set; }
+
+        public static Business.Investor investorInstance = new Investor();
+
+        #region Create Instance Class DBWInvestor
+        private static DBW.DBWInvestor dbwInvestor;
+        internal static DBW.DBWInvestor DBWInvestorInstance
+        {
+            get
+            {
+                if (Investor.dbwInvestor == null)
+                {
+                    Investor.dbwInvestor = new DBW.DBWInvestor();
+                }
+
+                return Investor.dbwInvestor;
+            }
+        }
+        #endregion
+
+        #region Create Instance Class DBWInvestorProfile
+        private static DBW.DBWInvestorProfile dbwInvestorProfile;
+        private static DBW.DBWInvestorProfile DBWInvestorProfile
+        {
+            get
+            {
+                if (Investor.dbwInvestorProfile == null)
+                {
+                    Investor.dbwInvestorProfile = new DBW.DBWInvestorProfile();
+                }
+
+                return dbwInvestorProfile;
+            }
+        }
+        #endregion
+
+        private bool isInTask = false;
+
+        #region PROPERTY MONITOR
+        internal bool IsMonitor { get; set; }
+        internal List<string> ListMonitor { get; set; }
+        #endregion
+    }
+}

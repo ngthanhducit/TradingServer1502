@@ -1,0 +1,92 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using SuperWebSocket;
+using SuperSocket.SocketBase;
+
+namespace TradingServer.Business
+{
+    public partial class Market
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="session"></param>
+        public void AddSession(WebSocketSession session)
+        {
+            lock (Business.Market.ListSocketClient)
+            {
+                Business.Market.ListSocketClient.Add(session);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="reason"></param>
+        public void RemoveSession(WebSocketSession session, CloseReason reason)
+        {
+            lock (Business.Market.ListSocketClient)
+            {
+                Business.Market.ListSocketClient.Remove(session);
+            }
+
+            #region REMOVE SESSION WEBSOCKET IN LIST INVESTOR ONLINE
+            //Remove session websocket in list investor online
+            if (Business.Market.InvestorOnline != null)
+            {
+                int count = Business.Market.InvestorOnline.Count;
+                for (int i = 0; i < Business.Market.InvestorOnline.Count; i++)
+                {
+                    if (Business.Market.InvestorOnline[i].SessionInstance != null)
+                    {
+                        int countSession = Business.Market.InvestorOnline[i].SessionInstance.Count;
+                        for (int j = 0; j < countSession; j++)
+                        {
+                            if (Business.Market.InvestorOnline[i].SessionInstance[j].Session.SessionID == session.SessionID)
+                            {
+                                Model.TradingCalculate.Instance.Element5Log("[Close Socket Remove Online - ]" + Business.Market.InvestorOnline[i].Code);
+
+                                Business.Market.InvestorOnline[i].SessionInstance = null;
+                                Business.Market.InvestorOnline.RemoveAt(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            #endregion
+
+            #region REMOVE SESSION WEBSOCKET IN LIST INVESTOR
+            if (Business.Market.InvestorList != null)
+            {
+                int count = Business.Market.InvestorList.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (Business.Market.InvestorList[i].SessionInstance != null)
+                    {
+                        int countSession = Business.Market.InvestorList[i].SessionInstance.Count;
+                        for (int j = 0; j < countSession; j++)
+                        {
+                            if (Business.Market.InvestorList[i].SessionInstance[j].Session.SessionID == session.SessionID)
+                            {
+                                Model.TradingCalculate.Instance.Element5Log("[Close Socket - ]" + Business.Market.InvestorList[i].Code);
+
+                                //send notify to manager
+                                TradingServer.Facade.FacadeSendNotifyManagerRequest(2, Business.Market.InvestorList[i]);
+
+                                Business.Market.InvestorList[i].SessionInstance = null;
+                                Business.Market.InvestorList[i].IsOnline = false;
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            #endregion
+        }
+    }
+}

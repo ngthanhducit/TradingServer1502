@@ -1,0 +1,710 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{457BC8D7-31DC-4351-8D54-79E5C202C1E6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TradingServer</RootNamespace>
+    <AssemblyName>TradingServer</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Ionic.Zip, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\DLL Library\Ionic.Zip.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.11.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\DLL Library\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="NDde">
+      <HintPath>..\..\..\DLL Library\NDde.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\DLL Library\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\DLL Library\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.Common, Version=1.4.4.0, Culture=neutral, PublicKeyToken=6c80000676988ebb, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\DLL Library\SuperSocket.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.Facility, Version=1.4.4.0, Culture=neutral, PublicKeyToken=6c80000676988ebb, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\DLL Library\SuperSocket.Facility.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.Management.Server">
+      <HintPath>..\..\..\DLL Library\SuperSocket.Management.Server.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.Management.Shared">
+      <HintPath>..\..\..\DLL Library\SuperSocket.Management.Shared.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.SocketBase, Version=1.4.4.0, Culture=neutral, PublicKeyToken=6c80000676988ebb, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\DLL Library\SuperSocket.SocketBase.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.SocketEngine, Version=1.4.4.0, Culture=neutral, PublicKeyToken=6c80000676988ebb, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\DLL Library\SuperSocket.SocketEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperWebSocket, Version=0.6.0.0, Culture=neutral, PublicKeyToken=7ba53b9a7cef5d1c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\DLL Library\SuperWebSocket.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WebSocket4Net">
+      <HintPath>..\..\..\DLL Library\WebSocket4Net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Agent\Agent.cs" />
+    <Compile Include="Agent\AgentAdmin.cs" />
+    <Compile Include="Agent\AgentConfig.cs" />
+    <Compile Include="Agent\AgentMaster.cs" />
+    <Compile Include="Agent\IAdminAgent.cs" />
+    <Compile Include="Agent\IAdminMaster.cs" />
+    <Compile Include="Agent\IAgentInvestorSymbol.cs" />
+    <Compile Include="Agent\IAgentWithAgent.cs" />
+    <Compile Include="Agent\IMasterAgentSymbol.cs" />
+    <Compile Include="Agent\IParameterCommission.cs" />
+    <Compile Include="Business\ActionLog.cs" />
+    <Compile Include="Business\Agent.cs" />
+    <Compile Include="Business\Agent.Dealer.cs" />
+    <Compile Include="Business\AgentGroup.cs" />
+    <Compile Include="Business\AgentNotify.cs" />
+    <Compile Include="Business\AgentReport.cs" />
+    <Compile Include="Business\AgentSecurity.cs" />
+    <Compile Include="Business\ApplicationError.cs" />
+    <Compile Include="Business\BackupQueue.cs" />
+    <Compile Include="Business\BinaryCommand.Calculation.cs" />
+    <Compile Include="Business\BinaryCommand.cs" />
+    <Compile Include="Business\BinaryCommand.Property.cs" />
+    <Compile Include="Business\Calculator.cs" />
+    <Compile Include="Business\CalculatorFacade.cs" />
+    <Compile Include="Business\ClientConfig.cs" />
+    <Compile Include="Business\ClientReport.cs" />
+    <Compile Include="Business\CommandAction.cs" />
+    <Compile Include="Business\CommandLog.cs" />
+    <Compile Include="Business\CommandMT4.cs" />
+    <Compile Include="Business\ConditionAlert.cs" />
+    <Compile Include="Business\ConfirmationTemplate.cs" />
+    <Compile Include="Business\DateTimeEvent.cs" />
+    <Compile Include="Business\DealMessage.cs" />
+    <Compile Include="Business\FutureCommand.cs" />
+    <Compile Include="Business\GlobalDelegate.cs" />
+    <Compile Include="Business\GroupDefault.cs" />
+    <Compile Include="Business\httpWebRequest.cs" />
+    <Compile Include="Business\IAgentGroup.cs" />
+    <Compile Include="Business\IAgentSecurity.cs" />
+    <Compile Include="Business\IGroupSecurity.Calculation.cs" />
+    <Compile Include="Business\IGroupSecurity.cs" />
+    <Compile Include="Business\IGroupSymbol.cs" />
+    <Compile Include="Business\IGroupSymbol.DatabaseAccess.cs" />
+    <Compile Include="Business\InitStatus.cs" />
+    <Compile Include="Business\InternalMail.cs" />
+    <Compile Include="Business\Investor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\Investor.DatabaseAccess.cs" />
+    <Compile Include="Business\Investor.Function.cs" />
+    <Compile Include="Business\Investor.Process.cs" />
+    <Compile Include="Business\Investor.ProcessCheckCommand.cs" />
+    <Compile Include="Business\Investor.ProcessSetTask.cs" />
+    <Compile Include="Business\Investor.Property.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\Investor.RequestData.cs" />
+    <Compile Include="Business\InvestorAccountLog.cs" />
+    <Compile Include="Business\InvestorGroup.Business.cs" />
+    <Compile Include="Business\InvestorGroup.Calculation.cs" />
+    <Compile Include="Business\InvestorGroup.cs" />
+    <Compile Include="Business\InvestorGroup.DatabaseAccess.cs" />
+    <Compile Include="Business\InvestorGroupConfig.cs" />
+    <Compile Include="Business\InvestorLog.cs" />
+    <Compile Include="Business\InvestorStatus.cs" />
+    <Compile Include="Business\IVirtualDealer.cs" />
+    <Compile Include="Business\LastBalance.cs" />
+    <Compile Include="Business\LogContent.cs" />
+    <Compile Include="Business\LogType.cs" />
+    <Compile Include="Business\Margin.cs" />
+    <Compile Include="Business\Market.Agent.cs" />
+    <Compile Include="Business\Market.Broker.StringPort.cs" />
+    <Compile Include="Business\Market.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\Market.ExtractCommand.cs" />
+    <Compile Include="Business\Market.FunctionTimeEvent.cs" />
+    <Compile Include="Business\Market.ListStringPort.cs" />
+    <Compile Include="Business\Market.NotificationCenter.cs" />
+    <Compile Include="Business\Market.PrivateFunction.cs" />
+    <Compile Include="Business\Market.ProcessCommandList.cs" />
+    <Compile Include="Business\Market.Property.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\Market.StringPort.cs" />
+    <Compile Include="Business\Market.Thread.cs" />
+    <Compile Include="Business\Market.TimeEvent.cs" />
+    <Compile Include="Business\Market.WebSocketHandler.cs" />
+    <Compile Include="Business\Market.Wildcards.cs" />
+    <Compile Include="Business\News.Function.cs" />
+    <Compile Include="Business\News.Property.cs" />
+    <Compile Include="Business\OpenRemove.cs" />
+    <Compile Include="Business\OpenTrade.Calculation.cs" />
+    <Compile Include="Business\OpenTrade.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\OpenTrade.DatabaseAccess.cs" />
+    <Compile Include="Business\OpenTrade.Property.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\OptionCommand.cs" />
+    <Compile Include="Business\OrderData.cs" />
+    <Compile Include="Business\OrderInvestor.cs" />
+    <Compile Include="Business\ParameterItem.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\ParameterItem.IGroupSecurityConfig.cs" />
+    <Compile Include="Business\ParameterItem.IGroupSymbolConfig.cs" />
+    <Compile Include="Business\ParameterItem.InvestorGroupConfig.cs" />
+    <Compile Include="Business\ParameterItem.MarketConfig.cs" />
+    <Compile Include="Business\ParameterItem.TradingConfig.cs" />
+    <Compile Include="Business\ParameterMember.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\Permit.cs" />
+    <Compile Include="Business\PriceAlert.cs" />
+    <Compile Include="Business\PriceServer.cs" />
+    <Compile Include="Business\QuoteSymbol.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\QuoteSymbol.Property.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\ReportItem.cs" />
+    <Compile Include="Business\RequestDealer.cs" />
+    <Compile Include="Business\Role.cs" />
+    <Compile Include="Business\Security.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\Security.DatabaseAccess.cs" />
+    <Compile Include="Business\SecurityConfig.Calculation.cs" />
+    <Compile Include="Business\SecurityConfig.cs" />
+    <Compile Include="Business\SessionWebSocket.cs" />
+    <Compile Include="Business\SpotCommand.cs" />
+    <Compile Include="Business\Statement.cs" />
+    <Compile Include="Business\StatementInvestor.cs" />
+    <Compile Include="Business\StatementTemplate.cs" />
+    <Compile Include="Business\StatusPriceServer.cs" />
+    <Compile Include="Business\SumLastAccount.cs" />
+    <Compile Include="Business\Symbol.Calculation.cs" />
+    <Compile Include="Business\Symbol.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\Symbol.DatabaseAccess.cs" />
+    <Compile Include="Business\Symbol.Filter.cs" />
+    <Compile Include="Business\Symbol.Property.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\Symbol.Swaps.cs" />
+    <Compile Include="Business\SymbolProfile.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\SystemLog.cs" />
+    <Compile Include="Business\TargetFunction.cs" />
+    <Compile Include="Business\Tick.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\TickLog.cs" />
+    <Compile Include="Business\TimeEvent.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\TimeEventType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\TimeFrame.cs" />
+    <Compile Include="Business\TradeType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\TradeType.Property.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Business\TypeLogin.cs" />
+    <Compile Include="Business\ValidIPAddress.cs" />
+    <Compile Include="Business\VirtualDealer.cs" />
+    <Compile Include="Business\WildCards.cs" />
+    <Compile Include="ClientBusiness\Alert.cs" />
+    <Compile Include="ClientBusiness\AlertCondition.cs" />
+    <Compile Include="ClientBusiness\Announcement.cs" />
+    <Compile Include="ClientBusiness\BinaryTradingData.cs" />
+    <Compile Include="ClientBusiness\ChangeCommandQueue.cs" />
+    <Compile Include="ClientBusiness\ChatDelivery.cs" />
+    <Compile Include="ClientBusiness\ChatItem.cs" />
+    <Compile Include="ClientBusiness\ClientRequest.cs" />
+    <Compile Include="ClientBusiness\Command.cs" />
+    <Compile Include="ClientBusiness\DataServer.cs" />
+    <Compile Include="ClientBusiness\DealMessage.cs" />
+    <Compile Include="ClientBusiness\Friends.cs" />
+    <Compile Include="ClientBusiness\PChatDelivery.cs" />
+    <Compile Include="ClientBusiness\RequestFriends.cs" />
+    <Compile Include="ClientBusiness\StatusBinaryTrading.cs" />
+    <Compile Include="ClientBusiness\SwapData.cs" />
+    <Compile Include="ClientConnectPort.cs" />
+    <Compile Include="ClientFacade.BinaryTrading.cs" />
+    <Compile Include="ClientFacade.cs" />
+    <Compile Include="ClientFacade.Debug.cs" />
+    <Compile Include="ClientFacade.FillData.cs" />
+    <Compile Include="DBW\DBWAgent.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWAgentGroup.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWAlert.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWApplicationError.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWCommandAction.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWCommandHistory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWCommandLog.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWCommandType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWIAgentGroup.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWIAgentSecurity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWIGroupSecurity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWIGroupSecurityConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWIGroupSymbol.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWIGroupSymbolConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWInternalMail.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWInvestor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWInvestorAccountLog.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWInvestorGroup.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWInvestorGroupConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWInvestorLog.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWInvestorProfile.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWInvestorStatus.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWIVirtualDealer.cs" />
+    <Compile Include="DBW\DBWLastBalance.cs" />
+    <Compile Include="DBW\DBWNews.cs" />
+    <Compile Include="DBW\DBWStatement.cs" />
+    <Compile Include="DBW\DBWTickLog.cs" />
+    <Compile Include="DBW\DBWVirtualDealerConfig.cs" />
+    <Compile Include="DBW\DBWLogType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWMarketArea.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWMarketAreaConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWMarketConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWOnlineCommand.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWOrders.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWPermit.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWRole.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWSecurity.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWSecurityConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWSymbol.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWSystemLog.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWTradingConfig.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DBW\DBWVirtualDealer.cs" />
+    <Compile Include="DBW\DS.cs">
+      <DependentUpon>DS.xsd</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="DBW\DS.Designer.cs">
+      <DependentUpon>DS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Facade.Agent.cs" />
+    <Compile Include="Facade.AgentGroup.cs" />
+    <Compile Include="Facade.Alert.cs" />
+    <Compile Include="Facade.CommandHistory.cs" />
+    <Compile Include="Facade.cs" />
+    <Compile Include="Facade.IAgentGroup.cs" />
+    <Compile Include="Facade.IAgentSecurity.cs" />
+    <Compile Include="Facade.IGroupSecurity.cs" />
+    <Compile Include="Facade.IGroupSecurityConfig.cs" />
+    <Compile Include="Facade.IGroupSymbol.cs" />
+    <Compile Include="Facade.IGroupSymbolConfig.cs" />
+    <Compile Include="Facade.InternalMail.cs" />
+    <Compile Include="Facade.Investor.cs" />
+    <Compile Include="Facade.InvestorGroup.cs" />
+    <Compile Include="Facade.InvestorGroupConfig.cs" />
+    <Compile Include="Facade.InvestorStatus.cs" />
+    <Compile Include="Facade.LastAccount.cs" />
+    <Compile Include="Facade.MarketConfig.cs" />
+    <Compile Include="Facade.OnlineCommand.cs" />
+    <Compile Include="Facade.Permit.cs" />
+    <Compile Include="Facade.PrivateFunction.cs" />
+    <Compile Include="Facade.Role.cs" />
+    <Compile Include="Facade.Security.cs" />
+    <Compile Include="Facade.SecurityConfig.cs" />
+    <Compile Include="Facade.Symbol.cs" />
+    <Compile Include="Facade.TradingConfig.cs" />
+    <Compile Include="Facade.VirtualDealer.cs" />
+    <Compile Include="IPresenter\ICalculatorClient.cs" />
+    <Compile Include="IPresenter\ICommand.cs" />
+    <Compile Include="IPresenter\IDealer.cs" />
+    <Compile Include="IPresenter\IMarketArea.cs" />
+    <Compile Include="IPresenter\IOpenTrade.cs" />
+    <Compile Include="Model\BuildCommand.cs" />
+    <Compile Include="Model\CalculationFormular.cs" />
+    <Compile Include="Model\CommandFramework.cs" />
+    <Compile Include="Model\FileIn.cs" />
+    <Compile Include="Model\MailConfig.cs" />
+    <Compile Include="Model\MailConfigAgent.cs" />
+    <Compile Include="Model\TradingCalculate.cs" />
+    <Compile Include="Model\ValidateCheck.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="Service References\AgentWCF\Reference.cs" />
+    <Compile Include="Service References\AgentWCF\Reference1.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
+    <Compile Include="Service References\BrokerWCF\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
+    <Compile Include="Service References\PriceQuotes\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
+    <Compile Include="Service References\StreamWCF\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
+    <Compile Include="Service References\Trading\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Business\Market.DeleteFunction.cs" />
+    <None Include="app.config" />
+    <None Include="ClassDiagram\TradingServer.cd" />
+    <None Include="DBW\DS.xsc">
+      <DependentUpon>DS.xsd</DependentUpon>
+    </None>
+    <None Include="DBW\DS.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>DS1.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="DBW\DS.xss">
+      <DependentUpon>DS.xsd</DependentUpon>
+    </None>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Service References\AgentWCF\DefaultWCF.wsdl" />
+    <None Include="Service References\AgentWCF\DefaultWCF.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\AgentWCF\DefaultWCF1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\AgentWCF\DefaultWCF2.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\BrokerWCF\BrokerWCF.wsdl" />
+    <None Include="Service References\BrokerWCF\BrokerWCF.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\BrokerWCF\BrokerWCF1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\BrokerWCF\TradingServer.BrokerWCF.NotifyBrokerResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\PriceQuotes\PriceQuotes.wsdl" />
+    <None Include="Service References\PriceQuotes\PriceQuotes.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\PriceQuotes\PriceQuotes1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\PriceQuotes\PriceQuotes2.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\PriceQuotes\TradingServer.PriceQuotes.Tick.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\StreamWCF\StreamAlertWCF.wsdl" />
+    <None Include="Service References\StreamWCF\StreamAlertWCF.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\StreamWCF\StreamAlertWCF1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\Trading\TradingWCF.wsdl" />
+    <None Include="Service References\Trading\TradingWCF.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\Trading\TradingWCF1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Service References\Trading\TradingWCF2.xsd">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\BrokerWCF\" />
+    <WCFMetadataStorage Include="Service References\PriceQuotes\" />
+    <WCFMetadataStorage Include="Service References\StreamWCF\" />
+    <WCFMetadataStorage Include="Service References\Trading\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\StreamWCF\StreamAlertWCF.disco" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\StreamWCF\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\StreamWCF\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\StreamWCF\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\Trading\TradingWCF.disco" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\Trading\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\Trading\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\Trading\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\PriceQuotes\PriceQuotes.disco" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\PriceQuotes\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\PriceQuotes\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\PriceQuotes\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bin\Debug\" />
+    <Folder Include="ClientPort\" />
+    <Folder Include="ProcessNotify\" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\BrokerWCF\BrokerWCF.disco" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\BrokerWCF\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\BrokerWCF\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\BrokerWCF\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Service References\AgentWCF\configuration.svcinfo" />
+    <Content Include="Service References\AgentWCF\configuration91.svcinfo" />
+    <Content Include="Service References\AgentWCF\DefaultWCF.disco" />
+    <Content Include="Service References\AgentWCF\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference1.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\SyNews\NewsTradingLibrary\NewsTradingLibrary.csproj">
+      <Project>{4c0bbe35-6dce-4e12-925f-b48ae30f43a0}</Project>
+      <Name>NewsTradingLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\TempCode\BuildCommandElement5ConnectMT4\BuildCommandElement5ConnectMT4\BuildCommandElement5ConnectMT4.csproj">
+      <Project>{8ccd9c97-a928-4d3f-9360-68de6921171c}</Project>
+      <Name>BuildCommandElement5ConnectMT4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\DBConnection\DBConnection.csproj">
+      <Project>{b186b262-2308-408a-8ddd-73b252d7f3b4}</Project>
+      <Name>DBConnection</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Element5SocketConnectMT4\Element5SocketConnectMT4.csproj">
+      <Project>{9a392a75-cd4a-469d-9157-ab799f37481a}</Project>
+      <Name>Element5SocketConnectMT4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ProcessQuoteLibrary\ProcessQuoteLibrary\ProcessQuoteLibrary.csproj">
+      <Project>{5884e3cc-9f9e-48c7-b740-544ef5edbb9e}</Project>
+      <Name>ProcessQuoteLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\QuotesServerV2010\QuotesServer.csproj">
+      <Project>{c49030b3-04aa-4c33-a375-e831ec82032b}</Project>
+      <Name>QuotesServer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ServerBackupLibrary\ServerBackupLibrary\ServerBackupLibrary.csproj">
+      <Project>{e7f23820-0d02-4a23-9156-d8b5a6566a94}</Project>
+      <Name>ServerBackupLibrary</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

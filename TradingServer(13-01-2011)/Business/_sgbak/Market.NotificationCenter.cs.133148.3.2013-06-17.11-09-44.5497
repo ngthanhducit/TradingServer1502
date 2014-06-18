@@ -1,0 +1,695 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace TradingServer.Business
+{
+    public partial class Market
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        public void ReceiveNotify(string message)
+        {
+            if (Business.Market.NotifyMessageFromMT4 != null)
+                Business.Market.NotifyMessageFromMT4.Add(message);
+        }
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //public string ReceiveNotify(string message)
+        //{
+        //    if (Business.Market.NotifyMessageFromMT4 != null)
+        //        Business.Market.NotifyMessageFromMT4.Add(message);
+
+        //    return string.Empty;
+        //}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void IniGlobalNotify()
+        {
+            //Business.GlobalDelegate newGlobalNotify = new GlobalDelegate();
+            //newGlobalNotify.EnableDelegate();
+
+            Business.Market.InstanceGlobalDelegate = new GlobalDelegate();
+            Business.Market.InstanceGlobalDelegate.EnableDelegate();
+
+            //Business.Market.InstanceGlobalDelegate.convertMethod = this.ReceiveNotify;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void ConnectMT4()
+        {
+           Business.Market.InstanceSocket.StartClient(DEFAULT_IPADDRESS, DEFAULT_PORTASYNC);
+        }
+
+        //MakeCommandNotify$CommandID{InvestorCode{OpenPrice{Size{StopLoss{TakeProfit{Symbol{CommandType{Comment
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private static TradingServer.Business.OpenTrade MapNotifyMakeCommand(string value)
+        {
+            TradingServer.Business.OpenTrade result = new TradingServer.Business.OpenTrade();
+            if (value != null)
+            {
+                string[] subValue = value.Split('$');
+                if (subValue.Count() == 2)
+                {
+                    string[] subParameter = subValue[1].Split('{');
+                    if (subParameter.Count() == 12)
+                    {
+                        result.RefCommandID = int.Parse(subParameter[0]);
+                        result.CommandCode = subParameter[0];
+
+                        #region FILL SYMBOL
+                        if (Business.Market.SymbolList != null)
+                        {
+                            int count = Business.Market.SymbolList.Count;
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (Business.Market.SymbolList[i].Name.ToUpper().Trim() == subParameter[6].ToUpper().Trim())
+                                {
+                                    result.Symbol = Business.Market.SymbolList[i];
+                                    break;
+                                }
+                            }
+                        }
+                        #endregion
+
+                        #region FILL INVESTOR
+                        if (Business.Market.InvestorList != null)
+                        {
+                            int count = Business.Market.InvestorList.Count;
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (Business.Market.InvestorList[i].Code.ToUpper().Trim() == subParameter[1].ToUpper().Trim())
+                                {
+                                    result.Investor = Business.Market.InvestorList[i];
+
+                                    #region GET IGROUP SECURITY
+                                    if (Business.Market.IGroupSecurityList != null)
+                                    {
+                                        int countIGroupSecurity = Business.Market.IGroupSecurityList.Count;
+                                        for (int n = 0; n < countIGroupSecurity; n++)
+                                        {
+                                            if (Business.Market.IGroupSecurityList[n].SecurityID == result.Symbol.SecurityID &&
+                                                Business.Market.IGroupSecurityList[n].InvestorGroupID == result.Investor.InvestorGroupInstance.InvestorGroupID)
+                                            {
+                                                result.IGroupSecurity = Business.Market.IGroupSecurityList[n];
+
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    #endregion
+
+                                    break;
+                                }
+                            }
+                        }
+                        #endregion
+
+                        #region Fill IGroupSecurity
+                        if (result.Investor != null)
+                        {
+                            if (Business.Market.IGroupSecurityList != null)
+                            {
+                                int countIGroupSecurity = Business.Market.IGroupSecurityList.Count;
+                                for (int j = 0; j < countIGroupSecurity; j++)
+                                {
+                                    if (Business.Market.IGroupSecurityList[j].SecurityID == result.Symbol.SecurityID &&
+                                        Business.Market.IGroupSecurityList[j].InvestorGroupID == result.Investor.InvestorGroupInstance.InvestorGroupID)
+                                    {
+                                        result.IGroupSecurity = Business.Market.IGroupSecurityList[j];
+                                       
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        #endregion
+
+                        result.OpenPrice = double.Parse(subParameter[2]);
+                        result.Size = double.Parse(subParameter[3]) / 100;
+                        result.StopLoss = double.Parse(subParameter[4]);
+                        result.TakeProfit = double.Parse(subParameter[5]);
+
+                        #region FILL COMMAND TYPE
+                        switch (int.Parse(subParameter[7]))
+                        {
+                            case 0: 
+                                {
+                                    #region SEARCH COMMAND TYPE
+                                    bool flag = false;
+                                    result.Type = new TradeType();
+                                    if (Business.Market.MarketArea != null)
+                                    {
+                                        int count = Business.Market.MarketArea.Count;
+                                        for (int i = 0; i < count; i++)
+                                        {
+                                            if (flag)
+                                                break;
+
+                                            if (Business.Market.MarketArea[i].Type != null)
+                                            {
+                                                int countType = Business.Market.MarketArea[i].Type.Count;
+                                                for (int j = 0; j < countType; j++)
+                                                {
+                                                    if (Business.Market.MarketArea[i].Type[j].ID == 1)
+                                                    {
+                                                        result.Type = Business.Market.MarketArea[i].Type[j];
+                                                        flag = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    #endregion
+                                }
+                                break;
+
+                            case 1:
+                                {
+                                    #region SEARCH COMMAND TYPE
+                                    bool flag = false;
+                                    result.Type = new TradeType();
+                                    if (Business.Market.MarketArea != null)
+                                    {
+                                        int count = Business.Market.MarketArea.Count;
+                                        for (int i = 0; i < count; i++)
+                                        {
+                                            if (flag)
+                                                break;
+
+                                            if (Business.Market.MarketArea[i].Type != null)
+                                            {
+                                                int countType = Business.Market.MarketArea[i].Type.Count;
+                                                for (int j = 0; j < countType; j++)
+                                                {
+                                                    if (Business.Market.MarketArea[i].Type[j].ID == 2)
+                                                    {
+                                                        result.Type = Business.Market.MarketArea[i].Type[j];
+                                                        flag = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    #endregion
+                                }
+                                break;
+
+                            case 2:
+                                {
+                                    #region SEARCH COMMAND TYPE
+                                    bool flag = false;
+                                    result.Type = new TradeType();
+                                    if (Business.Market.MarketArea != null)
+                                    {
+                                        int count = Business.Market.MarketArea.Count;
+                                        for (int i = 0; i < count; i++)
+                                        {
+                                            if (flag)
+                                                break;
+
+                                            if (Business.Market.MarketArea[i].Type != null)
+                                            {
+                                                int countType = Business.Market.MarketArea[i].Type.Count;
+                                                for (int j = 0; j < countType; j++)
+                                                {
+                                                    if (Business.Market.MarketArea[i].Type[j].ID == 7)
+                                                    {
+                                                        result.Type = Business.Market.MarketArea[i].Type[j];
+                                                        flag = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    #endregion
+                                }
+                                break;
+
+                            case 3:
+                                {
+                                    #region SEARCH COMMAND TYPE
+                                    bool flag = false;
+                                    result.Type = new TradeType();
+                                    if (Business.Market.MarketArea != null)
+                                    {
+                                        int count = Business.Market.MarketArea.Count;
+                                        for (int i = 0; i < count; i++)
+                                        {
+                                            if (flag)
+                                                break;
+
+                                            if (Business.Market.MarketArea[i].Type != null)
+                                            {
+                                                int countType = Business.Market.MarketArea[i].Type.Count;
+                                                for (int j = 0; j < countType; j++)
+                                                {
+                                                    if (Business.Market.MarketArea[i].Type[j].ID == 8)
+                                                    {
+                                                        result.Type = Business.Market.MarketArea[i].Type[j];
+                                                        flag = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    #endregion
+                                }
+                                break;
+
+                            case 4:
+                                {
+                                    #region SEARCH COMMAND TYPE
+                                    bool flag = false;
+                                    result.Type = new TradeType();
+                                    if (Business.Market.MarketArea != null)
+                                    {
+                                        int count = Business.Market.MarketArea.Count;
+                                        for (int i = 0; i < count; i++)
+                                        {
+                                            if (flag)
+                                                break;
+
+                                            if (Business.Market.MarketArea[i].Type != null)
+                                            {
+                                                int countType = Business.Market.MarketArea[i].Type.Count;
+                                                for (int j = 0; j < countType; j++)
+                                                {
+                                                    if (Business.Market.MarketArea[i].Type[j].ID == 9)
+                                                    {
+                                                        result.Type = Business.Market.MarketArea[i].Type[j];
+                                                        flag = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    #endregion
+                                }
+                                break;
+
+                            case 5:
+                                {
+                                    #region SEARCH COMMAND TYPE
+                                    bool flag = false;
+                                    result.Type = new TradeType();
+                                    if (Business.Market.MarketArea != null)
+                                    {
+                                        int count = Business.Market.MarketArea.Count;
+                                        for (int i = 0; i < count; i++)
+                                        {
+                                            if (flag)
+                                                break;
+
+                                            if (Business.Market.MarketArea[i].Type != null)
+                                            {
+                                                int countType = Business.Market.MarketArea[i].Type.Count;
+                                                for (int j = 0; j < countType; j++)
+                                                {
+                                                    if (Business.Market.MarketArea[i].Type[j].ID == 10)
+                                                    {
+                                                        result.Type = Business.Market.MarketArea[i].Type[j];
+                                                        flag = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    #endregion
+                                }
+                                break;
+                        }
+                        #endregion
+
+                        result.Commission = double.Parse(subParameter[8]);
+                        result.OpenTime = DateTime.Parse(subParameter[9]);
+                        result.ExpTime = DateTime.Parse(subParameter[10]);
+
+                        result.Comment = subParameter[11];
+                        return result;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="typeID"></param>
+        /// <returns></returns>
+        internal Business.TradeType GetTradeType(int typeID)
+        {
+            Business.TradeType result = new TradeType();
+            if (Business.Market.MarketArea != null)
+            {
+                bool flag = false;
+                int count = Business.Market.MarketArea.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (flag)
+                        break;
+
+                    if (Business.Market.MarketArea[i].Type != null)
+                    {
+                        int countType = Business.Market.MarketArea[i].Type.Count;
+                        for (int j = 0; j < countType; j++)
+                        {
+                            if (Business.Market.MarketArea[i].Type[j].ID == typeID)
+                            {
+                                result = Business.Market.MarketArea[i].Type[j];
+                                flag = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static Business.OpenTrade MapNotifyUpdateCommand(string value)
+        {
+            Business.OpenTrade result = new OpenTrade();
+            //NotifyUpdateCommand$CommandID{InvestorCode{OpenPrice{StopLoss{TakeProfit{Swap{Comment
+            if (value != null)
+            {
+                string[] subValue = value.Split('$');
+                if (subValue.Count() == 2)
+                {
+                    string[] subParameter = subValue[1].Split('{');
+                    if (subParameter.Count() == 13)
+                    {
+                        result.RefCommandID = int.Parse(subParameter[0]);
+
+                        if (Business.Market.InvestorList != null)
+                        {
+                            int count = Business.Market.InvestorList.Count;
+                            for (int i = 0; i < count; i++)
+                            {
+                                if(Business.Market.InvestorList[i].Code.ToUpper().Trim() == subParameter[1].ToUpper().Trim())
+                                {
+                                    result.Investor = Business.Market.InvestorList[i];
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        result.OpenPrice = double.Parse(subParameter[2]);
+                        result.StopLoss = double.Parse(subParameter[3]);
+                        result.TakeProfit = double.Parse(subParameter[4]);
+
+                        #region GET COMMAND TYPE
+                        switch (int.Parse(subParameter[5]))
+                        {
+                            case 0:
+                                {
+                                    Business.TradeType typeCommand = Business.Market.marketInstance.GetTradeType(1);
+                                    result.Type = typeCommand;
+                                }
+                                break;
+
+                            case 1:
+                                {
+                                    Business.TradeType typeCommand = Business.Market.marketInstance.GetTradeType(2);
+                                    result.Type = typeCommand;
+                                }
+                                break;
+
+                            case 2:
+                                {
+                                    Business.TradeType typeCommand = Business.Market.marketInstance.GetTradeType(7);
+                                    result.Type = typeCommand;
+                                }
+                                break;
+                            case 3:
+                                {
+                                    Business.TradeType typeCommand = Business.Market.marketInstance.GetTradeType(8);
+                                    result.Type = typeCommand;
+                                }
+                                break;
+
+                            case 4:
+                                {
+                                    Business.TradeType typeCommand = Business.Market.marketInstance.GetTradeType(9);
+                                    result.Type = typeCommand;
+                                }
+                                break;
+
+                            case 5:
+                                {
+                                    Business.TradeType typeCommand = Business.Market.marketInstance.GetTradeType(10);
+                                    result.Type = typeCommand;
+                                }
+                                break;
+                        }
+                        #endregion
+
+                        result.Swap = double.Parse(subParameter[5]);
+
+                        result.Commission = double.Parse(subParameter[6]);
+                        result.OpenTime = DateTime.Parse(subParameter[7]);
+                        result.ExpTime = DateTime.Parse(subParameter[8]);
+                        result.Swap = double.Parse(subParameter[9]);
+
+                        if (Business.Market.SymbolList != null)
+                        {
+                            int count = Business.Market.SymbolList.Count;
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (Business.Market.SymbolList[i].Name.ToUpper().Trim() == subParameter[10].ToUpper().Trim())
+                                {
+                                    result.Symbol = Business.Market.SymbolList[i];
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        result.Size = double.Parse(subParameter[11]) / 100;
+
+                        result.Comment = subParameter[12];
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static Business.OpenTrade MapNotifyCloseCommand(string value)
+        {
+            Business.OpenTrade result = new OpenTrade();
+            //NotifyCloseCommand$CommandID{ClosePrice{Size{Profit{Swap{Commission
+            if (value != null)
+            {
+                string[] subValue = value.Split('$');
+                if (subValue.Count() == 2)
+                {
+                    string[] subParameter = subValue[1].Split('{');
+                    if (subParameter.Count() == 7)
+                    {
+                        result.RefCommandID = int.Parse(subParameter[0]);
+                        result.ClosePrice = double.Parse(subParameter[1]);
+                        result.Size = double.Parse(subParameter[2]) / 100;
+                        result.Profit = double.Parse(subParameter[3]);
+                        result.Swap = double.Parse(subParameter[4]);
+                        result.Commission = double.Parse(subParameter[5]);
+                        result.CloseTime = DateTime.Parse(subParameter[6]);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static int MapNotifyDeleteCommand(string value)
+        {
+            int result = -1;
+            //NotifyDeleteCommand$CommandID
+            if (value != null)
+            {
+                string[] subValue = value.Split('$');
+                if (subValue.Count() == 2)
+                {
+                    result = int.Parse(subValue[1]);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static TradingServer.Business.Investor MapNotifyUpdateAccount(string value)
+        {
+            //NotifyUpdateAccount$InvestorCode{GroupName{AgentAccount{Balance{Credit{IsDisable{TaxRate{Leverage{Address{Phone{City{Country{Email{ZipCode{RegisterDay{Comment{State{Name(NickName){AllowChangePassword{ReadOnly{SendReport
+            TradingServer.Business.Investor result = new TradingServer.Business.Investor();
+
+            if (value != null)
+            {
+                string[] subValue = value.Split('$');
+                if (subValue.Count() == 2)
+                {
+                    string[] subParameter = subValue[1].Split('{');
+                    if (subParameter.Count() == 21)
+                    {
+                        result.Code = subParameter[0];
+
+                        if (Business.Market.InvestorList != null)
+                        {
+                            int count = Business.Market.InvestorList.Count;
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (Business.Market.InvestorList[i].Code.ToUpper().Trim() == subParameter[0].ToUpper().Trim())
+                                {
+                                    result.InvestorID = Business.Market.InvestorList[i].InvestorID;
+                                    break;
+                                }
+                            }
+                        }
+                        if (Business.Market.InvestorGroupList != null)
+                        {
+                            int count = Business.Market.InvestorGroupList.Count;
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (Business.Market.InvestorGroupList[i].Name.ToUpper().Trim() == subParameter[1].ToUpper().Trim())
+                                {
+                                    result.InvestorGroupInstance = Business.Market.InvestorGroupList[i];
+                                    break;
+                                }
+                            }
+                        }
+
+                        result.AgentID = subParameter[2];
+                        
+                        result.Balance = double.Parse(subParameter[3]);
+                        result.Credit = double.Parse(subParameter[4]);
+
+                        if (int.Parse(subParameter[5]) == 1)
+                            result.IsDisable = false;
+                        else 
+                            result.IsDisable = true;
+
+                        result.TaxRate = double.Parse(subParameter[6]);
+                        result.Leverage = int.Parse(subParameter[7]);
+                        result.Address = subParameter[8];
+                        result.Phone = subParameter[9];
+                        result.City = subParameter[10];
+                        result.Country = subParameter[11];
+                        result.Email = subParameter[12];
+                        result.ZipCode = subParameter[13];
+                        result.RegisterDay = DateTime.Parse(subParameter[14]);
+                        result.Comment = subParameter[15];
+                        result.State = subParameter[16];
+                        result.NickName = subParameter[17];
+
+                        if (int.Parse(subParameter[18]) == 1)
+                            result.AllowChangePwd = true;
+                        else
+                            result.AllowChangePwd = false;
+
+                        if (int.Parse(subParameter[19]) == 1)
+                            result.ReadOnly = true;
+                        else 
+                            result.ReadOnly = false;
+
+                        if (!string.IsNullOrEmpty(subParameter[20]))
+                        {
+                            if (int.Parse(subParameter[20]) == 1)
+                                result.SendReport = true;
+                            else
+                                result.SendReport = false;
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static Business.Investor MapNotifyUpdateInfoAccount(string value)
+        {
+            Business.Investor result = new Investor();
+
+            if (!string.IsNullOrEmpty(value))
+            {
+                string[] subValue = value.Split('$');
+                if (subValue.Length == 2)
+                {
+                    string[] subParameter = subValue[1].Split('{');
+                    if (subParameter.Length == 7)
+                    {
+                        if (Business.Market.InvestorList != null)
+                        {
+                            int count = Business.Market.InvestorList.Count;
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (Business.Market.InvestorList[i].Code.ToUpper().Trim() == subParameter[0].ToUpper().Trim())
+                                {
+                                    result.InvestorID = Business.Market.InvestorList[i].InvestorID;
+                                    result.Code = Business.Market.InvestorList[i].Code;
+                                    break;
+                                }
+                            }
+                        }
+
+                        result.Credit = double.Parse(subParameter[6]);
+                        result.Balance = double.Parse(subParameter[1]) - result.Credit;
+                        result.Equity = double.Parse(subParameter[2]);
+                        result.Margin = double.Parse(subParameter[3]);
+                        result.FreeMargin = double.Parse(subParameter[4]);
+                        result.MarginLevel = double.Parse(subParameter[5]);
+
+                        TradingServer.Model.TradingCalculate.Instance.StreamFile("[Receive Account] - Account: " + result.Code + " Balance: " + result.Balance + " Equity: " + result.Equity +
+                            " Margin: " + result.Margin + " FreeMargin: " + result.FreeMargin + " Margin Level: " + result.MarginLevel);
+                    }
+                }
+            }
+
+            return result;
+        }
+    }
+}
